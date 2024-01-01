@@ -6,12 +6,10 @@ I'll will be very grateful if you do so.
 
 # Credits
 arturzxc: for the features (ESP, Triggerbot, Aimbot) and X11Display's XTestFakeRelativeMotionEvent
-
 Koelion (Braziliana): menu, aimbot calculations
-
 unguhelvu : Seer-Styled ESP
-
 unknowncheats: basic knowledge and offsets
+Unknowndidi: Draw Box
 
 
 # Previews
