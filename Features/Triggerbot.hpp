@@ -38,9 +38,12 @@ struct Triggerbot {
             ImGui::Checkbox("Triggerbot", &TriggerbotEnabled);
             if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
                 ImGui::SetTooltip("Will automatically shoot the target\nWill only activate when your crosshair is at target whilst holding down Triggerbot key");
-            ImGui::SliderFloat("Triggerbot Range", &TriggerbotRange, 0, 1000, "%.0f");
-            if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-                ImGui::SetTooltip("Triggerbot's activation range.");
+
+            if (TriggerbotEnabled) {
+                ImGui::SliderFloat("Triggerbot Range", &TriggerbotRange, 0, 1000, "%.0f");
+                if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+                    ImGui::SetTooltip("Triggerbot's activation range.");
+            }
             ImGui::EndTabItem();
         }
     }

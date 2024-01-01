@@ -112,13 +112,6 @@ public:
 
         CaptureInput(true);
         glfwMakeContextCurrent(OverlayWindow);
-        
-        // Centering //
-        //GLFWmonitor* primaryMonitor = glfwGetPrimaryMonitor();
-        //const GLFWvidmode* vidMode = glfwGetVideoMode(primaryMonitor);
-        //glfwSetWindowPos(OverlayWindow, (vidMode->width - ScreenWidth) / 2, (vidMode->height - ScreenHeight) / 2);
-        // End of Centering //
-
         glfwSetWindowPos(OverlayWindow, ScreenPosX, ScreenPosY);
 
         InitializeUI();

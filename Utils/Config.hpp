@@ -48,6 +48,7 @@ namespace Config {
         float MaxDistance = 200;
         float SeerMaxDistance = 200;
         bool ShowSpectators = true;
+        bool SpectatorDisablesAA = true;
         bool DrawFOVCircle = true;
         float GameFOV = 120;
     };
@@ -88,6 +89,7 @@ void UpdateConfig() {
         WritePair(Sense, MaxDistance);
         WritePair(Sense, SeerMaxDistance);
         WritePair(Sense, ShowSpectators);
+        WritePair(Sense, SpectatorDisablesAA);
         WritePair(Sense, DrawFOVCircle);
         WritePair(Sense, GameFOV);
         WriteSectionEnd();
@@ -128,6 +130,7 @@ bool ReadConfig(const std::string &configFile) {
     ReadFloat(Sense, MaxDistance);
     ReadFloat(Sense, SeerMaxDistance);
     ReadBool(Sense, ShowSpectators);
+    ReadBool(Sense, SpectatorDisablesAA);
     ReadBool(Sense, DrawFOVCircle);
     ReadFloat(Sense, GameFOV);
 

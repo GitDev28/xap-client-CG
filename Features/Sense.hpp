@@ -54,6 +54,7 @@ struct Sense {
     float GameFOV = 120;
 
     bool ShowSpectators = true;
+    bool SpectatorDisablesAA = true;
     
     // Variables
     Camera* GameCamera;
@@ -126,6 +127,10 @@ struct Sense {
             if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
                 ImGui::SetTooltip("Show spectators");
 
+            ImGui::Checkbox("Disable Aim Assist if spectator", &SpectatorDisablesAA);
+            if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+                ImGui::SetTooltip("If someone watches your game, the Aim Assist is automatically disabled. \nIt will re-engage when the spectator leaves");
+
             ImGui::EndTabItem();
         }
     }
@@ -142,6 +147,7 @@ struct Sense {
             Config::Sense::SeerMaxDistance = SeerMaxDistance;
             Config::Sense::AimedAtOnly = AimedAtOnly;
             Config::Sense::ShowSpectators = ShowSpectators;
+            Config::Sense::SpectatorDisablesAA = SpectatorDisablesAA;
             Config::Sense::DrawFOVCircle = DrawFOVCircle;
             Config::Sense::GameFOV = GameFOV;
             return true;
@@ -211,6 +217,13 @@ struct Sense {
                 }
             }
             ImGui::End();
+
+            //CG Disable Aim assist if spectator
+            if (TotalSpectators > 0 && SpectatorDisablesAA) {
+                AimAssistState->AimbotEnabled = false;
+            } else {
+                AimAssistState->AimbotEnabled = true;
+            }
         }
 
         // Draw FOV Circle

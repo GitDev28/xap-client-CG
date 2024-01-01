@@ -68,7 +68,7 @@ struct Aimbot {
 
             ImGui::Separator();
 
-            if (ImGui::CollapsingHeader("Recoil Control", nullptr)) {
+            if (AimbotEnabled) {
                 ImGui::Checkbox("Recoil Control", &RecoilEnabled);
                 if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
                     ImGui::SetTooltip("Reduce the intensity of weapon's recoil.");
@@ -78,45 +78,46 @@ struct Aimbot {
                 ImGui::SliderFloat("Yaw", &YawPower, 1, 10, "%.1f");
                 if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
                     ImGui::SetTooltip("Yaw Power");
+
+                ImGui::Separator();
+
+                ImGui::Checkbox("Predict Movement", &PredictMovement);
+                if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+                    ImGui::SetTooltip("Predict target's movement");
+                ImGui::SameLine();
+                ImGui::Checkbox("Predict Bullet Drop", &PredictBulletDrop);
+                if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+                    ImGui::SetTooltip("Predict weapon's bullet drop");
+
+                ImGui::Separator();
+
+                ImGui::SliderFloat("Speed", &Speed, 1, 100, "%.0f");
+                if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+                    ImGui::SetTooltip("Speed of the Aim-Assist\nHigher = Faster");
+
+                ImGui::Separator();
+
+                ImGui::SliderFloat("Smooth", &Smooth, 0, 0.99, "%.3f");
+                if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+                    ImGui::SetTooltip("Smoothness for the Aim-Assist\nHigher = Smoother");
+
+                ImGui::Separator();
+
+                ImGui::SliderFloat("FOV", &FOV, 1, 90, "%.0f");
+                if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+                    ImGui::SetTooltip("Field of View");
+                ImGui::SliderFloat("Zoom Scale", &ZoomScale, 0, 5, "%.1f");
+
+                ImGui::Separator();
+
+                ImGui::SliderFloat("Hip-fire Distance", &HipfireDistance, 1, 500, "%.0f");
+                if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+                    ImGui::SetTooltip("Minimum distance for Aim-Assist to work");
+                ImGui::SliderFloat("Zoom Distance", &ZoomDistance, 1, 500, "%.0f");
+                if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+                    ImGui::SetTooltip("Maximum distance for Aim-Assist to work");
+
             }
-
-            ImGui::Separator();
-
-            ImGui::Checkbox("Predict Movement", &PredictMovement);
-            if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-                ImGui::SetTooltip("Predict target's movement");
-            ImGui::SameLine();
-            ImGui::Checkbox("Predict Bullet Drop", &PredictBulletDrop);
-            if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-                ImGui::SetTooltip("Predict weapon's bullet drop");
-
-            ImGui::Separator();
-
-            ImGui::SliderFloat("Speed", &Speed, 1, 100, "%.0f");
-            if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-                ImGui::SetTooltip("Speed of the Aim-Assist\nHigher = Faster");
-
-            ImGui::Separator();
-
-            ImGui::SliderFloat("Smooth", &Smooth, 0, 0.99, "%.3f");
-            if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-                ImGui::SetTooltip("Smoothness for the Aim-Assist\nHigher = Smoother");
-
-            ImGui::Separator();
-
-            ImGui::SliderFloat("FOV", &FOV, 1, 90, "%.0f");
-            if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-                ImGui::SetTooltip("Field of View");
-            ImGui::SliderFloat("Zoom Scale", &ZoomScale, 0, 5, "%.1f");
-
-            ImGui::Separator();
-
-            ImGui::SliderFloat("Hip-fire Distance", &HipfireDistance, 1, 500, "%.0f");
-            if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-                ImGui::SetTooltip("Minimum distance for Aim-Assist to work");
-            ImGui::SliderFloat("Zoom Distance", &ZoomDistance, 1, 500, "%.0f");
-            if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-                ImGui::SetTooltip("Maximum distance for Aim-Assist to work");
 
             ImGui::EndTabItem();
         }

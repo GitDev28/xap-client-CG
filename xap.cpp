@@ -89,7 +89,7 @@ bool InitializeOverlayWindow() {
     int ScreenHeight;
     OverlayWindow.GetScreenResolution(ScreenWidth, ScreenHeight);
     GameCamera->Initialize(ScreenWidth, ScreenHeight);
-    std::cout << "overlay initialized" << std::endl;
+    std::cout << "overlay initialized (" << ScreenWidth << " x " << ScreenHeight << ")" << std::endl;
     return true;
 }
 
@@ -124,6 +124,7 @@ void LoadConfig() {
     ESP->SeerMaxDistance = Config::Sense::SeerMaxDistance;
     ESP->AimedAtOnly = Config::Sense::AimedAtOnly;
     ESP->ShowSpectators = Config::Sense::ShowSpectators;
+    ESP->SpectatorDisablesAA = Config::Sense::SpectatorDisablesAA;
     ESP->DrawFOVCircle = Config::Sense::DrawFOVCircle;
     ESP->GameFOV = Config::Sense::GameFOV;
 
@@ -161,9 +162,11 @@ void RenderUI() {
 
     if (!IsMenuOpened) return;
 
-    // Menu
-    ImGui::SetNextWindowSizeConstraints(ImVec2(440, 420), ImVec2(440, 420));
-    ImGui::SetNextWindowSize(ImVec2(440, 420), ImGuiCond_FirstUseEver);
+    // Menu (//CG adding W/H fpr Menu)
+    int menuWidth = 440;
+    int menuHeight = 500;
+    ImGui::SetNextWindowSizeConstraints(ImVec2(menuWidth, menuHeight), ImVec2(menuWidth, menuHeight));
+    ImGui::SetNextWindowSize(ImVec2(menuWidth, menuHeight), ImGuiCond_FirstUseEver);
     ImGui::Begin("xap-client", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar);
     
     ProcessingTimeColor = OverlayWindow.ProcessingTime > 20 ? ProcessingTimeColor = ImVec4(1, 0.343, 0.475, 1) : ProcessingTimeColor = ImVec4(0.4, 1, 0.343, 1);
@@ -186,6 +189,8 @@ void RenderUI() {
             ImGui::TextColored(ImVec4(0.65, 1, 0.95, 1), "Credits:");
             ImGui::TextColored(ImVec4(0.03, 1, 0.95, 1), "arturzxc: ESP, Triggerbot and X11Display's Move Mouse method");
             ImGui::TextColored(ImVec4(0.3, 1, 0.64, 1), "Koelion: ImGui Menu, AimbotResolver");
+            ImGui::TextColored(ImVec4(0.03, 1, 0.95, 1), "unguhelvu: Seer-Styled ESP");
+            ImGui::TextColored(ImVec4(0.3, 1, 0.64, 1), "Unknowndidi: Draw Box");
             ImGui::TextColored(ImVec4(0.3, 0.6, 0.9, 1), "unknowncheats: Offsets and ton of other things");
             ImGui::TextColored(ImVec4(0.6, 1, 0.64, 1), "Made by Azreol/Nexilist");
             ImGui::EndTabItem();
@@ -261,7 +266,7 @@ int main(int argc, char *argv[]) {
     }
 
     std::system("clear");
-    std::cout << "xap client ver 1.2" << std::endl;
+    std::cout << "xap client ver 1.2 (CG modified version 12/31/2023)" << std::endl;
 
     // Initialize Overlay Window //
     if (!InitializeOverlayWindow()) return -1;
