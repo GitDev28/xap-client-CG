@@ -120,6 +120,9 @@ void LoadConfig() {
     ESP->GlowEnabled = Config::Sense::Enabled;
     ESP->ItemGlow = Config::Sense::ItemGlow;
     ESP->GlowMaxDistance = Config::Sense::MaxDistance;
+    ESP->DrawBox = Config::Sense::DrawBox;
+    ESP->DrawTracers = Config::Sense::DrawTracers;
+    ESP->DrawDistance = Config::Sense::DrawDistance;
     ESP->DrawSeer = Config::Sense::DrawSeer;
     ESP->SeerMaxDistance = Config::Sense::SeerMaxDistance;
     ESP->AimedAtOnly = Config::Sense::AimedAtOnly;
