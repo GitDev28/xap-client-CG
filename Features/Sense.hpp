@@ -36,6 +36,13 @@ struct Sense {
     bool ItemGlow = true;
 
     // Health and Armor, etc...
+    //CG DrawBox
+    bool DrawBox = true;
+    float yOffset = -85.0f; 
+    float xOffset = -30.0f;
+    float yyOffset = 15.0f; 
+    float xxOffset = 15.0f;
+    //CG end of DrawBox
     bool DrawTracers = true;
     bool DrawDistance = true;
     bool DrawSeer = true;
@@ -55,13 +62,7 @@ struct Sense {
     std::chrono::milliseconds LastUpdateTime;
     int TotalSpectators = 0;
     std::vector<std::string> Spectators;
-    //CG DrawBox
-    bool Drawbox = true;
-    float yOffset = -85.0f; 
-    float xOffset = -30.0f;
-    float yyOffset = 15.0f; 
-    float xxOffset = 15.0f;
-    //CG end of DrawBox
+
 
     Sense(std::vector<Player*>* Players, Camera* GameCamera, LocalPlayer* Myself) {
         this->Players = Players;
@@ -86,7 +87,7 @@ struct Sense {
             ImGui::Separator();
 
             //CG DrawBox
-            ImGui::Checkbox("Draw box", &Drawbox);
+            ImGui::Checkbox("Draw box", &DrawBox);
             if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
                 ImGui::SetTooltip("Drawbox on enemy");
 
@@ -134,6 +135,7 @@ struct Sense {
             Config::Sense::Enabled = GlowEnabled;
             Config::Sense::ItemGlow = ItemGlow;
             Config::Sense::MaxDistance = GlowMaxDistance;
+            Config::Sense::DrawBox = DrawBox;
             Config::Sense::DrawTracers = DrawTracers;
             Config::Sense::DrawDistance = DrawDistance;
             Config::Sense::DrawSeer = DrawSeer;
@@ -224,7 +226,7 @@ struct Sense {
             if (!p->IsCombatReady() || !p->IsVisible || !p->IsHostile || p->DistanceToLocalPlayer > (Conversion::ToGameUnits(SeerMaxDistance)) || Myself->BasePointer == p->BasePointer) continue;
 
             //CG DrawBox
-            if (Drawbox)
+            if (DrawBox)
 	    	{
 	    		       		
 		        Vector2D headScreenPosition, chestScreenPosition;
