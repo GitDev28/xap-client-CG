@@ -220,9 +220,9 @@ struct Sense {
 
             //CG Disable Aim assist if spectator
             if (TotalSpectators > 0 && SpectatorDisablesAA) {
-                AimAssistState->AimbotEnabled = false;
+                //AimAssistState->AimbotEnabled = false;
             } else {
-                AimAssistState->AimbotEnabled = true;
+                //AimAssistState->AimbotEnabled = true;
             }
         }
 
