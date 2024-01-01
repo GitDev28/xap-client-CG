@@ -40,6 +40,8 @@ namespace Config {
     namespace Sense {
         bool Enabled = true;
         bool ItemGlow = true;
+        bool DrawTracers = true;
+        bool DrawDistance = true;
         bool DrawSeer = true;
         bool AimedAtOnly = false;
         float MaxDistance = 200;
@@ -77,6 +79,8 @@ void UpdateConfig() {
         WriteSection(Sense);
         WritePair(Sense, Enabled);
         WritePair(Sense, ItemGlow);
+        WritePair(Sense, DrawTracers);
+        WritePair(Sense, DrawDistance);
         WritePair(Sense, DrawSeer);
         WritePair(Sense, AimedAtOnly);
         WritePair(Sense, MaxDistance);
@@ -114,6 +118,8 @@ bool ReadConfig(const std::string &configFile) {
 
     ReadBool(Sense, Enabled);
     ReadBool(Sense, ItemGlow);
+    ReadBool(Sense, DrawTracers);
+    ReadBool(Sense, DrawDistance);
     ReadBool(Sense, DrawSeer);
     ReadBool(Sense, AimedAtOnly);
     ReadFloat(Sense, MaxDistance);

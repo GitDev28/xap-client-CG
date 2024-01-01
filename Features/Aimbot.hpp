@@ -61,6 +61,7 @@ struct Aimbot {
 
     void RenderUI() {
         if (ImGui::BeginTabItem("Aim", nullptr, ImGuiTabItemFlags_NoCloseWithMiddleMouseButton | ImGuiTabItemFlags_NoReorder)) {
+            
             ImGui::Checkbox("Aim - Assist", &AimbotEnabled);
             if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
                 ImGui::SetTooltip("Toggle the Aim-Assist");
@@ -150,7 +151,8 @@ struct Aimbot {
         else FinalDistance = HipfireDistance;
 
         if (!Myself->IsCombatReady()) { CurrentTarget = nullptr; return; }
-        if (!X11Display->KeyDown(XK_Shift_L) && !Myself->IsInAttack) { ReleaseTarget(); return; }
+        //CG if (!X11Display->KeyDown(XK_Shift_L) && !Myself->IsInAttack) { ReleaseTarget(); return; }
+        if (!Myself->IsZooming && !Myself->IsInAttack) { ReleaseTarget(); return; }
         if (Myself->IsHoldingGrenade) { ReleaseTarget(); return; }
 
         Player* Target = CurrentTarget;

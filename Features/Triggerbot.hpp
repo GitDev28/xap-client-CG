@@ -66,7 +66,9 @@ struct Triggerbot {
             if (!player->IsCombatReady()) continue;
             if (!player->IsHostile) continue;
             if (!player->IsAimedAt) continue;
-            if (player->DistanceToLocalPlayer < Conversion::ToGameUnits(TriggerbotRange) && X11Display->KeyDown(XK_Shift_L)) {
+            //CG if (player->DistanceToLocalPlayer < Conversion::ToGameUnits(TriggerbotRange) && X11Display->KeyDown(XK_Shift_L)) {
+            //CG Remove the need to hold the Left SHIFT to activate the triggerbot
+            if (player->DistanceToLocalPlayer < Conversion::ToGameUnits(TriggerbotRange)) {
                 X11Display->MouseClickLeft();
                 break;
             }

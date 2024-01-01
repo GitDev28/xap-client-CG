@@ -36,9 +36,9 @@ struct Sense {
     bool ItemGlow = true;
 
     // Health and Armor, etc...
-    bool DrawSeer = true;
     bool DrawTracers = true;
     bool DrawDistance = true;
+    bool DrawSeer = true;
     bool DrawFOVCircle = true;
     
     bool AimedAtOnly = false;
@@ -55,6 +55,13 @@ struct Sense {
     std::chrono::milliseconds LastUpdateTime;
     int TotalSpectators = 0;
     std::vector<std::string> Spectators;
+    //CG DrawBox
+    bool Drawbox = true;
+    float yOffset = -85.0f; 
+    float xOffset = -30.0f;
+    float yyOffset = 15.0f; 
+    float xxOffset = 15.0f;
+    //CG end of DrawBox
 
     Sense(std::vector<Player*>* Players, Camera* GameCamera, LocalPlayer* Myself) {
         this->Players = Players;
@@ -78,6 +85,13 @@ struct Sense {
 
             ImGui::Separator();
 
+            //CG DrawBox
+            ImGui::Checkbox("Draw box", &Drawbox);
+            if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+                ImGui::SetTooltip("Drawbox on enemy");
+
+            ImGui::Separator();
+
             // Drawings
             ImGui::Checkbox("Draw Tracer##ESP", &DrawTracers);
             if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
@@ -86,7 +100,6 @@ struct Sense {
             ImGui::Checkbox("Draw Distance##ESP", &DrawDistance);
             if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
                 ImGui::SetTooltip("Show how far the enemy is");
-            ImGui::Separator();
             ImGui::Checkbox("Draw Health and Armor##ESP", &DrawSeer);
             if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
                 ImGui::SetTooltip("Draw Health Bar and Armor");
@@ -121,6 +134,8 @@ struct Sense {
             Config::Sense::Enabled = GlowEnabled;
             Config::Sense::ItemGlow = ItemGlow;
             Config::Sense::MaxDistance = GlowMaxDistance;
+            Config::Sense::DrawTracers = DrawTracers;
+            Config::Sense::DrawDistance = DrawDistance;
             Config::Sense::DrawSeer = DrawSeer;
             Config::Sense::SeerMaxDistance = SeerMaxDistance;
             Config::Sense::AimedAtOnly = AimedAtOnly;
@@ -208,8 +223,26 @@ struct Sense {
             Player* p = Players->at(i);
             if (!p->IsCombatReady() || !p->IsVisible || !p->IsHostile || p->DistanceToLocalPlayer > (Conversion::ToGameUnits(SeerMaxDistance)) || Myself->BasePointer == p->BasePointer) continue;
 
-            // Tracer
-            if (DrawTracers) {
+            //CG DrawBox
+            if (Drawbox)
+	    	{
+	    		       		
+		        Vector2D headScreenPosition, chestScreenPosition;
+		        GameCamera->WorldToScreen(p->GetBonePosition(HitboxType::Head), headScreenPosition);
+		        GameCamera->WorldToScreen(p->GetBonePosition(HitboxType::UpperChest), chestScreenPosition);
+		        chestScreenPosition.y -= yOffset;
+		        chestScreenPosition.x -=xOffset;
+		        headScreenPosition.y-=yyOffset;
+		        headScreenPosition.x-=xxOffset;
+		        if (p->IsLockedOn) 
+		        {
+		        	Renderer::DrawBox(Canvas, chestScreenPosition, headScreenPosition, ImColor(255,0,0), 2);
+		        } else if (!p->IsLockedOn)  Renderer::DrawBox(Canvas, chestScreenPosition, headScreenPosition, ImColor(255, 255, 255), 2);
+		        
+            }
+
+            // Tracer [//CG Added Tracer in AimedAtOnly]
+            if (DrawTracers && !AimedAtOnly) {
                 Vector2D chestScreenPosition;
                 GameCamera->WorldToScreen(p->GetBonePosition(HitboxType::UpperChest), chestScreenPosition);
                 if (!chestScreenPosition.IsZeroVector()) {
@@ -219,8 +252,8 @@ struct Sense {
                 }
             }
 
-            // Distance
-            if (DrawDistance) {
+            // Distance [//CG Added Distance in AimedAtOnly]
+            if (DrawDistance && !AimedAtOnly) {
                 Vector2D originScreenPosition;
                 GameCamera->WorldToScreen(p->LocalOrigin.Add(Vector3D(0, 15, 0)), originScreenPosition);
                 if (!originScreenPosition.IsZeroVector()) {
@@ -237,8 +270,27 @@ struct Sense {
             }
         }
 
-        // Draw Seer on locked target
+        // Draw Seer, Distance and Tracer on locked target
         if (AimAssistState->TargetSelected && AimAssistState->CurrentTarget) {
+
+            //CG Added Tracer in AimedAtOnly
+            Vector2D chestScreenPosition;
+            GameCamera->WorldToScreen(AimAssistState->CurrentTarget->GetBonePosition(HitboxType::UpperChest), chestScreenPosition);
+            if (!chestScreenPosition.IsZeroVector()) {
+                int x = (int)(ScreenWidth * 0.5f);
+                Renderer::DrawLine(Canvas, Vector2D(x, ScreenHeight), chestScreenPosition, 1.5f, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
+                Renderer::DrawCircleFilled(Canvas, chestScreenPosition, 2, 10, ImColor(255, 255, 255));
+            }
+
+            if (DrawDistance && !AimedAtOnly) {
+                Vector2D originScreenPosition;
+                GameCamera->WorldToScreen(AimAssistState->CurrentTarget->LocalOrigin.Add(Vector3D(0, 15, 0)), originScreenPosition);
+                if (!originScreenPosition.IsZeroVector()) {
+                    Renderer::DrawText(Canvas, originScreenPosition.Add(Vector2D(5, 0)), std::to_string((int)Conversion::ToMeters(AimAssistState->CurrentTarget->DistanceToLocalPlayer)).c_str(), ImVec4(1.0f, 1.0f, 1.0f, 1.0f), true, true, false);
+                }
+            }
+
+            // Seer
             Vector2D headScreenPosition;
             GameCamera->WorldToScreen(AimAssistState->CurrentTarget->GetBonePosition(HitboxType::Head), headScreenPosition);
             if (headScreenPosition.IsZeroVector())

@@ -15,13 +15,17 @@
 
 class Overlay {
 private:
+    //GC Modif for 2 monitors
     GLFWwindow* OverlayWindow;
     int ScreenWidth;
     int ScreenHeight;
+    int ScreenPosX;
+    int ScreenPosY;
 
     void GrabScreenSize() {
         GLFWmonitor* primaryMonitor = glfwGetPrimaryMonitor();
         const GLFWvidmode* vidMode = glfwGetVideoMode(primaryMonitor);
+        glfwGetMonitorPos(primaryMonitor, &ScreenPosX, &ScreenPosY);
         ScreenWidth = vidMode->width;
         ScreenHeight = vidMode->height;
     }
@@ -86,7 +90,6 @@ public:
         if (!glfwInit()) {
             return false;
         }
-
         GrabScreenSize();
         
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -111,10 +114,12 @@ public:
         glfwMakeContextCurrent(OverlayWindow);
         
         // Centering //
-        GLFWmonitor* primaryMonitor = glfwGetPrimaryMonitor();
-        const GLFWvidmode* vidMode = glfwGetVideoMode(primaryMonitor);
-        glfwSetWindowPos(OverlayWindow, (vidMode->width - ScreenWidth) / 2, (vidMode->height - ScreenHeight) / 2);
+        //GLFWmonitor* primaryMonitor = glfwGetPrimaryMonitor();
+        //const GLFWvidmode* vidMode = glfwGetVideoMode(primaryMonitor);
+        //glfwSetWindowPos(OverlayWindow, (vidMode->width - ScreenWidth) / 2, (vidMode->height - ScreenHeight) / 2);
         // End of Centering //
+
+        glfwSetWindowPos(OverlayWindow, ScreenPosX, ScreenPosY);
 
         InitializeUI();
 
