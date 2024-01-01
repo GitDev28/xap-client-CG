@@ -11,9 +11,11 @@ Koelion (Braziliana): menu, aimbot calculations
 
 unguhelvu : Seer-Styled ESP
 
-unknowncheats: basic knowledge and offsets
+rafaelstefany: Multiple monitors setup
 
 Unknowndidi: Draw Box
+
+unknowncheats: basic knowledge and offsets
 
 
 # Previews

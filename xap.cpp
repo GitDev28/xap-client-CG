@@ -189,8 +189,9 @@ void RenderUI() {
             ImGui::TextColored(ImVec4(0.65, 1, 0.95, 1), "Credits:");
             ImGui::TextColored(ImVec4(0.03, 1, 0.95, 1), "arturzxc: ESP, Triggerbot and X11Display's Move Mouse method");
             ImGui::TextColored(ImVec4(0.3, 1, 0.64, 1), "Koelion: ImGui Menu, AimbotResolver");
-            ImGui::TextColored(ImVec4(0.03, 1, 0.95, 1), "unguhelvu: Seer-Styled ESP");
-            ImGui::TextColored(ImVec4(0.3, 1, 0.64, 1), "Unknowndidi: Draw Box");
+            ImGui::TextColored(ImVec4(0.03, 1, 0.95, 1), "rafaelstefany: Multiple monitors setup");
+            ImGui::TextColored(ImVec4(0.3, 1, 0.64, 1), "unguhelvu: Seer-Styled ESP");
+            ImGui::TextColored(ImVec4(0.03, 1, 0.95, 1), "Unknowndidi: Draw Box");
             ImGui::TextColored(ImVec4(0.3, 0.6, 0.9, 1), "unknowncheats: Offsets and ton of other things");
             ImGui::TextColored(ImVec4(0.6, 1, 0.64, 1), "Made by Azreol/Nexilist");
             ImGui::EndTabItem();
