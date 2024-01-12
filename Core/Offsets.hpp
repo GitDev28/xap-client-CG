@@ -51,6 +51,10 @@ constexpr long OFF_CURRENTZOOMFOV = 0x1590 + 0x00b8;          //m_playerData + m
 constexpr long OFF_TARGETZOOMFOV = 0x1590 + 0x00bc;           //m_playerData + m_targetZoomFOV
 
 // Glow
+constexpr long OFF_GLOW_ENABLE = 0x26C;                       //[DT_HighlightSettings].?
+constexpr long OFF_GLOW_THROUGH_WALL = 0x28C;                 //[DT_HighlightSettings].?
+constexpr long OFF_GLOW_FIX = 0x268;
+constexpr long OFF_GLOW_HIGHLIGHT_ID = 0x28C;                 //[DT_HighlightSettings].m_highlightServerActiveStates
 constexpr long OFF_GLOW_HIGHLIGHTS = 0xB7A6050;               //HighlightSettings
 constexpr long OFF_GLOW_HIGHLIGHTS_MAX = 0xB7A6068;
 
@@ -61,11 +65,6 @@ constexpr long OFF_MODELNAME = 0x0030;                        //m_ModelName
 
 // GLOW
 constexpr long HIGHLIGHT_TYPE_SIZE = 0x28;  
-constexpr long OFF_GLOW_ENABLE = 0x294;                       //Script_Highlight_GetCurrentContext
-constexpr long OFF_GLOW_THROUGH_WALL = 0x278;                 //Script_Highlight_SetVisibilityType
-constexpr long OFF_GLOW_FIX = 0x270;
-constexpr long OFF_GLOW_HIGHLIGHT_ID = 0x298;                 //[DT_HighlightSettings].m_highlightServerActiveStates    
-
 
 /* Previous version
 

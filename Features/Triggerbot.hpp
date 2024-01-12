@@ -100,7 +100,7 @@ struct Triggerbot {
     //std::set<int> WeaponList = {1, 88, 20, 110, 89, 112, 106, 108, 2, 91, 158};
     std::set<int> WeaponList = {1, 85, 111, 90, 107, 2, 92, 163};
     // Definition of auto triggered weapon (Turbo Fire)
-    std::set<int> WeaponListTF = {104};
+    std::set<int> WeaponListTF = {105};
 
     XDisplay* X11Display;
     LocalPlayer* Myself;
