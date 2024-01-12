@@ -4,6 +4,7 @@
 #include "LocalPlayer.hpp"
 #include "../Utils/Memory.hpp"
 #include "../Utils/HitboxType.hpp"
+#include "../Utils/Config.hpp"
 #include "../Math/Vector2D.hpp"
 #include "../Math/Vector3D.hpp"
 #include "../Math/Matrix.hpp"
@@ -24,6 +25,7 @@ struct Player {
     bool IsDead;
     bool IsKnocked;
 
+    Vector2D ViewAngles;
     Vector3D LocalOrigin;
     Vector3D AbsoluteVelocity;
 
@@ -36,6 +38,8 @@ struct Player {
     int LastTimeAimedAtPrevious;
     bool IsAimedAt;
 
+    bool nonBR;
+    bool friendly;
     int LastVisibleTime;
     int LastTimeVisiblePrevious;
     bool IsVisible;
@@ -74,6 +78,9 @@ struct Player {
         GlowThroughWall = Memory::Read<int>(BasePointer + OFF_GLOW_THROUGH_WALL);
         HighlightID = Memory::Read<int>(BasePointer + OFF_GLOW_HIGHLIGHT_ID + 1);
 
+        ViewAngles = Memory::Read<Vector2D>(BasePointer + OFF_VIEW_ANGLES);
+        ViewYaw = Memory::Read<float>(BasePointer + OFF_YAW);
+
         LastTimeAimedAt = Memory::Read<int>(BasePointer + OFF_LAST_AIMEDAT_TIME);
         IsAimedAt = LastTimeAimedAtPrevious < LastTimeAimedAt;
         LastTimeAimedAtPrevious = LastTimeAimedAt;
@@ -89,6 +96,12 @@ struct Player {
 
         if (Myself->IsValid()) {
             IsLocal = Myself->BasePointer == BasePointer;
+
+            nonBR = !Config::GameMode::threeManSquad;
+            friendly = (nonBR)
+                ? (Myself->Team % 2 == 0 && Team % 2 == 0) || (Myself->Team % 2 != 0 && Team % 2 != 0)
+                : Myself->Team == Team;
+
             IsAlly = Myself->Team == Team;
             IsHostile = !IsAlly;
             DistanceToLocalPlayer = Myself->LocalOrigin.Distance(LocalOrigin);
@@ -96,11 +109,91 @@ struct Player {
         }
     }
 
+    void setCustomGlow(int health, bool isVisible, bool isSameTeam)
+    {
+        static const int contextId = 1;
+        long basePointer = BasePointer;
+        int settingIndex = 65;
+        std::array<unsigned char, 4> highlightFunctionBits = {
+            0,   // InsideFunction
+            125, // OutlineFunction: HIGHLIGHT_OUTLINE_OBJECTIVE
+            64,  // OutlineRadius: size * 255 / 8
+            64   // (EntityVisible << 6) | State & 0x3F | (AfterPostProcess << 7)
+        };
+        std::array<float, 4> glowColorRGB = { 0, 0, 0, 0 };
+        if (isSameTeam) {
+            settingIndex = 20;
+        } else if (!isVisible) {
+            settingIndex = 65;
+            glowColorRGB = { 0.5, 0.5, 0.5, 1 }; // knocked enemies // gray
+        } else if (health >= 205) {
+            settingIndex = 66;
+            glowColorRGB = { 1, 0, 0, 1 }; // red shield
+        } else if (health >= 190) {
+            settingIndex = 67;
+            glowColorRGB = { 0.5, 0, 0.5, 1 }; // purple shield
+        } else if (health >= 170) {
+            settingIndex = 68;
+            glowColorRGB = { 0, 0.5, 1, 1 }; // blue shield
+        } else if (health >= 95) {
+            settingIndex = 69;
+            glowColorRGB = { 0, 1, 0.5, 1 }; // gray shield // cyan 
+        } else {
+            settingIndex = 70;
+            glowColorRGB = { 0, 0.5, 0, 1 }; // low health enemies // green
+        }
+        Memory::Write<unsigned char>(basePointer + OFF_GLOW_HIGHLIGHT_ID + contextId, settingIndex);
+        if (!isSameTeam) {
+            Memory::Write<typeof(highlightFunctionBits)>(
+                Myself->highlightSettingsPtr + HIGHLIGHT_TYPE_SIZE * settingIndex + 4, highlightFunctionBits);
+            Memory::Write<typeof(glowColorRGB)>(
+                Myself->highlightSettingsPtr + HIGHLIGHT_TYPE_SIZE * settingIndex + 8, glowColorRGB);
+            Memory::Write<int>(basePointer + OFF_GLOW_FIX, 1);
+        }   
+    }
+
     std::string GetPlayerName(){
         uintptr_t NameIndex = Memory::Read<uintptr_t>(BasePointer + OFF_NAME_INDEX);
         uintptr_t NameOffset = Memory::Read<uintptr_t>(OFF_REGION + OFF_NAME_LIST + ((NameIndex - 1) << 4 ));
         std::string PlayerName = Memory::ReadPlayerName(NameOffset, 64);
         return PlayerName;
+    }
+
+    std::string getPlayerModelName(){
+        uintptr_t modelOffset = Memory::Read<uintptr_t>(BasePointer + OFF_MODELNAME);
+        std::string modelName = Memory::ReadString(modelOffset, 1024);
+        // Check for different player names
+        if (modelName.find("dummie") != std::string::npos) modelName = "DUMMIE";
+        else if (modelName.find("ash") != std::string::npos) modelName = "ASH";
+        else if (modelName.find("ballistic") != std::string::npos) modelName = "BALLISTIC";
+        else if (modelName.find("bangalore") != std::string::npos) modelName = "BANGALORE";
+        else if (modelName.find("bloodhound") != std::string::npos) modelName = "BLOODHOUND";
+        else if (modelName.find("catalyst") != std::string::npos) modelName = "CATALYST";
+        else if (modelName.find("caustic") != std::string::npos) modelName = "CAUSTIC";
+        else if (modelName.find("conduit") != std::string::npos) modelName = "CONDUIT";
+        else if (modelName.find("crypto") != std::string::npos) modelName = "CRYPTO";
+        else if (modelName.find("fuse") != std::string::npos) modelName = "FUSE";
+        else if (modelName.find("gibraltar") != std::string::npos) modelName = "GIBRALTAR";
+        else if (modelName.find("horizon") != std::string::npos) modelName = "HORIZON";
+        else if (modelName.find("nova") != std::string::npos) modelName = "HORIZON";
+        else if (modelName.find("holo") != std::string::npos) modelName = "MIRAGE";
+        else if (modelName.find("mirage") != std::string::npos) modelName = "MIRAGE";
+        else if (modelName.find("lifeline") != std::string::npos) modelName = "LIFELINE";
+        else if (modelName.find("loba") != std::string::npos) modelName = "LOBA";
+        else if (modelName.find("madmaggie") != std::string::npos) modelName = "MADMAGGIE";
+        else if (modelName.find("newcastle") != std::string::npos) modelName = "NEWCASTLE";
+        else if (modelName.find("octane") != std::string::npos) modelName = "OCTANE";
+        else if (modelName.find("pathfinder") != std::string::npos) modelName = "PATHFINDER";
+        else if (modelName.find("rampart") != std::string::npos) modelName = "RAMPART";
+        else if (modelName.find("revenant") != std::string::npos) modelName = "REVENANT";
+        else if (modelName.find("seer") != std::string::npos) modelName = "SEER";
+        else if (modelName.find("stim") != std::string::npos) modelName = "OCTANE";
+        else if (modelName.find("valkyrie") != std::string::npos) modelName = "VALKYRIE";
+        else if (modelName.find("vantage") != std::string::npos) modelName = "VANTAGE";
+        else if (modelName.find("wattson") != std::string::npos) modelName = "WATTSON";
+        else if (modelName.find("wraith") != std::string::npos) modelName = "WRAITH";
+        
+        return modelName;
     }
     
     float GetViewYaw() {

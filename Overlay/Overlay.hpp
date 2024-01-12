@@ -15,19 +15,44 @@
 
 class Overlay {
 private:
-    //GC Modif for 2 monitors
+    //GC Modif for 2+ monitors
     GLFWwindow* OverlayWindow;
     int ScreenWidth;
     int ScreenHeight;
     int ScreenPosX;
     int ScreenPosY;
+    int MonitorCount;
+    int ScreenRefRate;
+    int ScreenOffset;
 
-    void GrabScreenSize() {
+    void GetMonitorPositions() {
+        // Number of Monitors
+        GLFWmonitor** monitors = glfwGetMonitors(&MonitorCount);        
+        if (MonitorCount > 0) std::cout << MonitorCount << " monitor(s) detected." << std::endl;
+        MonCount = MonitorCount;
+
         GLFWmonitor* primaryMonitor = glfwGetPrimaryMonitor();
+        // Position of the monitor on the virtual desktop
         const GLFWvidmode* vidMode = glfwGetVideoMode(primaryMonitor);
-        glfwGetMonitorPos(primaryMonitor, &ScreenPosX, &ScreenPosY);
         ScreenWidth = vidMode->width;
         ScreenHeight = vidMode->height;
+        ScreenRefRate = vidMode->refreshRate;
+
+        glfwGetMonitorPos(primaryMonitor, &ScreenPosX, &ScreenPosY);
+        std::cout << "Primary Monitor:\n - Position: " << ScreenPosX << " x " << ScreenPosY << "\n"
+            << " - Resolution: " << ScreenWidth << " x " << ScreenHeight << "\n"
+            << " - Refesh Rate: " << ScreenRefRate << "Hz"
+            << std::endl;
+
+        // Adjustement for Work Area
+        /*glfwGetMonitorWorkarea(primaryMonitor, &ScreenPosX, &ScreenPosY, &ScreenWidth, &ScreenHeight);
+        std::cout << "Primary Work Area:\n - Position: " << ScreenPosX << " x " << ScreenPosY << "\n"
+            << " - Resolution: " << ScreenWidth << " x " << ScreenHeight 
+            << std::endl;
+
+        ScreenOffset = vidMode->height - ScreenHeight - ScreenPosY;
+
+        std::cout << "Window Position Offset: " << ScreenOffset << std::endl;*/
     }
 
     std::string RandomString(int ch) {
@@ -84,13 +109,14 @@ public:
     long long StartTime;
     int SleepTime;
     int TimeLeftToSleep;
+    int MonCount;
 
     bool InitializeOverlay() {
         glfwSetErrorCallback(GLFWErrorCallback);
         if (!glfwInit()) {
             return false;
         }
-        GrabScreenSize();
+        GetMonitorPositions();
         
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 4);
@@ -292,7 +318,8 @@ public:
             glfwSwapBuffers(OverlayWindow);
 
             ProcessingTime = static_cast<int>(CurrentEpochMilliseconds() - StartTime);
-            SleepTime = 6; // 16.67 > 60hz | 6.97 > 144hz
+            // REF https://www.unknowncheats.me/forum/3934494-post420.html
+            SleepTime = 8;
             TimeLeftToSleep = std::max(0, SleepTime - ProcessingTime);
             std::this_thread::sleep_for(std::chrono::milliseconds(TimeLeftToSleep));
         }
@@ -300,8 +327,16 @@ public:
         DestroyOverlay();
     }
 
-    void GetScreenResolution(int& Width, int& Height) const {
+    void GetScreenResolution(int& Width, int& Height, int& scPosX, int& scPosY, int& scOffset) const {
         Width = ScreenWidth;
         Height = ScreenHeight;
+        scPosX = ScreenPosX;
+        scPosY = ScreenPosY;
+        scOffset = ScreenOffset;
+    }
+
+    void moveOverlay(int ScreenPosX, int ScreenPosY) {
+        glfwSetWindowPos(OverlayWindow, ScreenPosX, ScreenPosY); 
+        std::cout << "" << "Moving overlay to " << ScreenPosX << ", " << ScreenPosY << std::endl;
     }
 };

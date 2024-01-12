@@ -18,12 +18,14 @@ struct LocalPlayer {
 
     Vector2D ViewAngles;
     Vector2D PunchAngles;
+    Vector2D PunchAnglesPrevious;
+    Vector2D PunchAnglesDifferent;
 
     int WeaponIndex;
     float WeaponProjectileSpeed;
     float WeaponProjectileScale;
     bool IsHoldingGrenade;
-
+    long highlightSettingsPtr;
     float ZoomFOV;
     float TargetZoomFOV;
 
@@ -41,12 +43,15 @@ struct LocalPlayer {
         IsKnocked = Memory::Read<short>(BasePointer + OFF_BLEEDOUT_STATE) > 0;
         IsZooming = Memory::Read<short>(BasePointer + OFF_ZOOMING) > 0;
         IsInAttack = Memory::Read<short>(OFF_REGION + OFF_INATTACK) > 0;
+        highlightSettingsPtr = Memory::Read<long>( OFF_REGION + OFF_GLOW_HIGHLIGHTS);
 
         Team = Memory::Read<int>(BasePointer + OFF_TEAM_NUMBER);
         LocalOrigin = Memory::Read<Vector3D>(BasePointer + OFF_LOCAL_ORIGIN);
         CameraPosition = Memory::Read<Vector3D>(BasePointer + OFF_CAMERAORIGIN);
         ViewAngles = Memory::Read<Vector2D>(BasePointer + OFF_VIEW_ANGLES);
         PunchAngles = Memory::Read<Vector2D>(BasePointer + OFF_PUNCH_ANGLES);
+        PunchAnglesDifferent = PunchAnglesPrevious.Subtract(PunchAngles);
+        PunchAnglesPrevious = PunchAngles;
 
         ViewYaw = Memory::Read<float>(BasePointer + OFF_YAW);
 
@@ -76,5 +81,51 @@ struct LocalPlayer {
         if (IsDead) return false;
         if (IsKnocked) return false;
         return true;
+    }
+
+    void setMeYaw(float angle)
+    {
+        long ptrLong = BasePointer + OFF_VIEW_ANGLES + sizeof(float);
+        Memory::Write<float>(ptrLong, angle);
+    }
+
+    float getPunchPitch()
+    {
+        long ptrLong = BasePointer + OFF_PUNCH_ANGLES;
+        float result = Memory::Read<float>(ptrLong);
+        return result;
+    }
+
+    float getPitch()
+    {
+        long ptrLong = BasePointer + OFF_VIEW_ANGLES;
+        float result = Memory::Read<float>(ptrLong);
+        return result;
+    }
+    void setPitch(float angle)
+    {
+        if (angle > 90 || angle < -90)
+            return;
+        long ptrLong = BasePointer + OFF_VIEW_ANGLES;
+        Memory::Write<float>(ptrLong, angle);
+    }
+    float getYaw()
+    {
+        long ptrLong = BasePointer + OFF_VIEW_ANGLES + sizeof(float);
+        float result = Memory::Read<float>(ptrLong);
+        return result;
+    }
+    void setYaw(float angle)
+    {
+        if (angle > 180 || angle < -180)
+            return;
+        long ptrLong = BasePointer + OFF_VIEW_ANGLES + sizeof(float);
+        Memory::Write<float>(ptrLong, angle);
+    }
+    float getPunchYaw()
+    {
+        long ptrLong = BasePointer + OFF_PUNCH_ANGLES + sizeof(float);
+        float result = Memory::Read<float>(ptrLong);
+        return result;
     }
 };

@@ -11,8 +11,7 @@ namespace Memory {
     pid_t PID = 0;
 
     pid_t GetPID() {
-        if (PID > 0)
-            return PID;
+        if (PID > 0) return PID;
 
         for (const auto& Entry : fs::directory_iterator("/proc")) {
             if (!Entry.is_directory())
@@ -93,7 +92,7 @@ namespace Memory {
         {
             PID = 0;
             throw std::invalid_argument(
-                "Failed to get " + std::to_string(sizeof(T)) + "at: " + std::to_string(Address));
+                "Failed to get " + std::to_string(sizeof(T)) + " at: " + std::to_string(Address));
         }
         return buffer;
     }
@@ -108,12 +107,45 @@ namespace Memory {
         }
     }
 
+    void readbytearray(long address, char* buffer, int size) {
+    	for (int i = 0; i < size; i++) {
+    	    bool success = Read((long)(address + (long)i), &(buffer[i]), sizeof(char));
+            if (!success)
+                throw new std::invalid_argument("Failed to read byte at address: " + address);
+    	}
+    }
+
+    std::string convertPointerToHexString(long pointer) {
+        std::stringstream stream;
+        stream << "0x" << std::hex << pointer;
+        std::string result(stream.str());
+        return result;
+    }
+
     std::string ReadString(long address) {
         int size = sizeof(std::string);
         char buffer[size] = {0};
         bool success = Read(address, &buffer, size);
         if (!success)
             throw new std::invalid_argument("Failed to read string at address: " + address);
+        return std::string(buffer);
+    }
+
+    std::string ReadString(long address, int size) {
+        char buffer[size] = { 0 };
+        bool success = Read(address, &buffer, size);
+        if (!success)
+            throw std::invalid_argument("Failed to read String at address: " + address);
+        return std::string(buffer);
+    }
+
+    std::string ReadString(long address, int size, std::string whatToRead) {
+        char buffer[size] = { 0 };
+        bool success = Read(address, &buffer, size);
+        if (!success) {
+            PID = 0;
+            throw std::invalid_argument("Failed to read memory string [" + whatToRead + "] at address : " + convertPointerToHexString(address));
+        }
         return std::string(buffer);
     }
 
@@ -130,5 +162,27 @@ namespace Memory {
         stream << "0x" << std::hex << pointer;
         std::string result(stream.str());
         return result;
+    }
+
+    std::string get_client_class_name(long entity_ptr) {
+        long client_networkable_vtable;
+        long get_client_entity;
+        int offset;
+        long network_name_ptr;
+        char buffer[32];
+        // Read the ClientClass's network name for to given entity
+        client_networkable_vtable = Memory::Read<long>(entity_ptr + 3 * 8);
+        get_client_entity = Memory::Read<long>(client_networkable_vtable + 3 * 8);
+        offset = Memory::Read<int>(get_client_entity + 3);
+        network_name_ptr = Memory::Read<long>(get_client_entity + offset + 7 + 16);
+        Memory::readbytearray(network_name_ptr, buffer, 32);
+        std::string result;
+        // Return up to 32 chars from the network name
+        size_t len;
+        for (len = 0; len < 32; ++len)
+            if (buffer[len] == '\0')
+                break;
+        result.assign(buffer, len);
+            return result;
     }
 }

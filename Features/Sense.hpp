@@ -36,13 +36,9 @@ struct Sense {
     bool ItemGlow = true;
 
     // Health and Armor, etc...
-    //CG DrawBox
     bool DrawBox = true;
-    float yOffset = -85.0f; 
-    float xOffset = -30.0f;
-    float yyOffset = 15.0f; 
-    float xxOffset = 15.0f;
-    //CG end of DrawBox
+    bool DrawSkeleton = true;
+    float SkeletonThickness = 1.5f;
     bool DrawTracers = true;
     bool DrawDistance = true;
     bool DrawSeer = true;
@@ -87,10 +83,13 @@ struct Sense {
 
             ImGui::Separator();
 
-            //CG DrawBox
             ImGui::Checkbox("Draw box", &DrawBox);
             if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-                ImGui::SetTooltip("Drawbox on enemy");
+                ImGui::SetTooltip("Draw Box on enemy");
+            ImGui::SameLine();
+            ImGui::Checkbox("Draw Skeleton", &DrawSkeleton);
+            if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+                ImGui::SetTooltip("Draw Skeleton on enemy");
 
             ImGui::Separator();
 
@@ -127,10 +126,10 @@ struct Sense {
             if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
                 ImGui::SetTooltip("Show spectators");
 
-            ImGui::Checkbox("Disable Aim Assist if spectator", &SpectatorDisablesAA);
+/*            ImGui::Checkbox("Disable Aim Assist if spectator", &SpectatorDisablesAA);
             if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
                 ImGui::SetTooltip("If someone watches your game, the Aim Assist is automatically disabled. \nIt will re-engage when the spectator leaves");
-
+*/
             ImGui::EndTabItem();
         }
     }
@@ -141,6 +140,7 @@ struct Sense {
             Config::Sense::ItemGlow = ItemGlow;
             Config::Sense::MaxDistance = GlowMaxDistance;
             Config::Sense::DrawBox = DrawBox;
+            Config::Sense::DrawSkeleton = DrawSkeleton;
             Config::Sense::DrawTracers = DrawTracers;
             Config::Sense::DrawDistance = DrawDistance;
             Config::Sense::DrawSeer = DrawSeer;
@@ -176,7 +176,11 @@ struct Sense {
     void RenderDrawings(ImDrawList* Canvas, Aimbot* AimAssistState, LocalPlayer* Myself, Overlay OverlayWindow) {
         int ScreenWidth;
         int ScreenHeight;
-        OverlayWindow.GetScreenResolution(ScreenWidth, ScreenHeight);
+        int posX;
+        int posY;
+        int scOffset;
+
+        OverlayWindow.GetScreenResolution(ScreenWidth, ScreenHeight, posX, posY, scOffset);
 
         if (ShowSpectators) {
             ImVec2 Center = ImGui::GetMainViewport()->GetCenter();
@@ -238,23 +242,84 @@ struct Sense {
             Player* p = Players->at(i);
             if (!p->IsCombatReady() || !p->IsVisible || !p->IsHostile || p->DistanceToLocalPlayer > (Conversion::ToGameUnits(SeerMaxDistance)) || Myself->BasePointer == p->BasePointer) continue;
 
-            //CG DrawBox
             if (DrawBox)
-	    	{
-	    		       		
-		        Vector2D headScreenPosition, chestScreenPosition;
-		        GameCamera->WorldToScreen(p->GetBonePosition(HitboxType::Head), headScreenPosition);
-		        GameCamera->WorldToScreen(p->GetBonePosition(HitboxType::UpperChest), chestScreenPosition);
-		        chestScreenPosition.y -= yOffset;
-		        chestScreenPosition.x -=xOffset;
-		        headScreenPosition.y-=yyOffset;
-		        headScreenPosition.x-=xxOffset;
+	    	{	
+		        Vector2D Head, Neck, LowerChest, RightLeg, LeftLeg, boxUL, boxBR;
+		        GameCamera->WorldToScreen(p->GetBonePosition(HitboxType::Head), Head);
+                GameCamera->WorldToScreen(p->GetBonePosition(HitboxType::Neck), Neck);
+                GameCamera->WorldToScreen(p->GetBonePosition(HitboxType::LowerChest), LowerChest);
+                GameCamera->WorldToScreen(p->GetBonePosition(HitboxType::RightLeg), RightLeg);
+                GameCamera->WorldToScreen(p->GetBonePosition(HitboxType::LeftLeg), LeftLeg);
+
+                (LeftLeg.x-RightLeg.x) > 0 ? boxUL.x = RightLeg.x: boxUL.x = LeftLeg.x;
+                boxUL.y = Head.y-3*(Neck.y-Head.y);
+                (LeftLeg.x-RightLeg.x) > 0 ? boxBR.x = LeftLeg.x: boxBR.x = RightLeg.x;
+                boxBR.y = LeftLeg.y;
+
 		        if (p->IsLockedOn) 
-		        {
-		        	Renderer::DrawBox(Canvas, chestScreenPosition, headScreenPosition, ImColor(255,0,0), 2);
-		        } else if (!p->IsLockedOn)  Renderer::DrawBox(Canvas, chestScreenPosition, headScreenPosition, ImColor(255, 255, 255), 2);
-		        
+                    Renderer::DrawBox(Canvas, boxUL, boxBR, ImColor(255,0,0), 2);
+		        else if (!p->IsLockedOn)
+                    Renderer::DrawBox(Canvas, boxUL, boxBR, ImColor(255, 255, 255), 2);
             }
+
+            //CG REF https://www.unknowncheats.me/forum/apex-legends/606842-xap-client-aimbot-esp-triggerbot-26.html#post3955327
+            if (DrawSkeleton)
+	    	{	
+			 ImColor SkeletonColor;
+			 SkeletonColor = ImColor(255, 255, 255);
+	    		
+	    		if (p->IsLockedOn) 
+		        {
+		    	    SkeletonColor = ImColor(255, 0, 0);
+		        } 
+	    		
+	    		Vector2D Head,Neck,UpperChest,LowerChest,Stomach,LeftShoulder,LeftElbow,LeftHand,RightShoulder,RightElbow,RightHand,LeftThigh,LeftKnee,LeftLeg,RightThigh,RightKnee,RightLeg;
+		        GameCamera->WorldToScreen(p->GetBonePosition(HitboxType::Head), Head);
+		        GameCamera->WorldToScreen(p->GetBonePosition(HitboxType::Neck), Neck);
+		        GameCamera->WorldToScreen(p->GetBonePosition(HitboxType::UpperChest), UpperChest);
+		        GameCamera->WorldToScreen(p->GetBonePosition(HitboxType::LowerChest), LowerChest);
+		        GameCamera->WorldToScreen(p->GetBonePosition(HitboxType::Stomach), Stomach);
+		        
+		        GameCamera->WorldToScreen(p->GetBonePosition(HitboxType::LeftShoulder), LeftShoulder);
+		        GameCamera->WorldToScreen(p->GetBonePosition(HitboxType::LeftElbow), LeftElbow);
+		        GameCamera->WorldToScreen(p->GetBonePosition(HitboxType::LeftHand), LeftHand);
+		        
+		        GameCamera->WorldToScreen(p->GetBonePosition(HitboxType::RightShoulder), RightShoulder);
+		        GameCamera->WorldToScreen(p->GetBonePosition(HitboxType::RightElbow), RightElbow);
+		        GameCamera->WorldToScreen(p->GetBonePosition(HitboxType::RightHand), RightHand);
+		        
+		        GameCamera->WorldToScreen(p->GetBonePosition(HitboxType::LeftThigh), LeftThigh);
+		        GameCamera->WorldToScreen(p->GetBonePosition(HitboxType::LeftKnee), LeftKnee);
+		        GameCamera->WorldToScreen(p->GetBonePosition(HitboxType::LeftLeg), LeftLeg);
+		        
+		        GameCamera->WorldToScreen(p->GetBonePosition(HitboxType::RightThigh), RightThigh);
+		        GameCamera->WorldToScreen(p->GetBonePosition(HitboxType::RightKnee), RightKnee);
+		        GameCamera->WorldToScreen(p->GetBonePosition(HitboxType::RightLeg), RightLeg);
+		
+		       
+		        //Renderer::DrawCircle(Canvas, Head, 10.0f, 0, SkeletonColor, SkeletonThickness);
+		        
+	    		Renderer::DrawLine(Canvas, Head, Neck, SkeletonThickness, SkeletonColor);
+	     		Renderer::DrawLine(Canvas, Neck, UpperChest, SkeletonThickness, SkeletonColor);
+	      		Renderer::DrawLine(Canvas, UpperChest, LowerChest, SkeletonThickness, SkeletonColor);
+		        Renderer::DrawLine(Canvas, LowerChest, Stomach, SkeletonThickness, SkeletonColor);
+		        
+		        Renderer::DrawLine(Canvas, Neck, LeftShoulder, SkeletonThickness, SkeletonColor);
+		        Renderer::DrawLine(Canvas, LeftShoulder, LeftElbow, SkeletonThickness, SkeletonColor);
+		        Renderer::DrawLine(Canvas, LeftElbow, LeftHand, SkeletonThickness, SkeletonColor);
+		        
+		        Renderer::DrawLine(Canvas, Neck, RightShoulder, SkeletonThickness, SkeletonColor);
+		        Renderer::DrawLine(Canvas, RightShoulder, RightElbow, SkeletonThickness, SkeletonColor);
+		        Renderer::DrawLine(Canvas, RightElbow, RightHand, SkeletonThickness, SkeletonColor);
+		        
+		        Renderer::DrawLine(Canvas, Stomach, LeftThigh, SkeletonThickness, SkeletonColor);
+		        Renderer::DrawLine(Canvas, LeftThigh, LeftKnee, SkeletonThickness, SkeletonColor);
+		        Renderer::DrawLine(Canvas, LeftKnee, LeftLeg, SkeletonThickness, SkeletonColor);
+		        
+		        Renderer::DrawLine(Canvas, Stomach, RightThigh, SkeletonThickness, SkeletonColor);
+		        Renderer::DrawLine(Canvas, RightThigh, RightKnee, SkeletonThickness, SkeletonColor);
+		        Renderer::DrawLine(Canvas, RightKnee, RightLeg, SkeletonThickness, SkeletonColor);
+	    	}
 
             // Tracer [//CG Added Tracer in AimedAtOnly]
             if (DrawTracers && !AimedAtOnly) {

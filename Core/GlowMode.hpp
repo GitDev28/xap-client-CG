@@ -25,6 +25,15 @@ struct GlowMode {
             && borderWidth == std::byte(0);
     }
 
+    void print() const {
+        std::cout
+            << "bodyStyle:" << static_cast<int>(bodyStyle)
+            << " borderStyle:" << static_cast<int>(borderStyle)
+            << " borderWidth:" << static_cast<int>(borderWidth)
+            << " transparency:" << static_cast<int>(transparency)
+            << "\n";
+    }
+
     bool operator==(const GlowMode& other) const {
         return bodyStyle == other.bodyStyle
             && borderStyle == other.borderStyle

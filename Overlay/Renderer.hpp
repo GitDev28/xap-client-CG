@@ -4,10 +4,133 @@
 #include "../imgui/imgui.h"
 #include "../Utils/Color.hpp"
 #include "../Math/Vector2D.hpp"
+#include "../Math/Vector3D.hpp"
 #include "../Math/Vector4D.hpp"
+
+ImU32 HSVToRGB(float h, float s, float v) {
+    float c = v * s;
+    float x = c * (1 - fabs(fmod(h / 60.0, 2) - 1));
+    float m = v - c;
+
+    float r, g, b;
+    if (h < 60) {
+        r = c;
+        g = x;
+        b = 0;
+    } else if (h < 120) {
+        r = x;
+        g = c;
+        b = 0;
+    } else if (h < 180) {
+        r = 0;
+        g = c;
+        b = x;
+    } else if (h < 240) {
+        r = 0;
+        g = x;
+        b = c;
+    } else if (h < 300) {
+        r = x;
+        g = 0;
+        b = c;
+    } else {
+        r = c;
+        g = 0;
+        b = x;
+    }
+
+    return IM_COL32(
+        static_cast<int>((r + m) * 255),
+        static_cast<int>((g + m) * 255),
+        static_cast<int>((b + m) * 255),
+        255
+    );
+}
 
 class Renderer {
 public:
+    static Vector3D RotatePoint(Vector3D EntityPos, Vector3D LocalPlayerPos, int posX, int posY, int sizeX, int sizeY, float angle, float zoom, bool* viewCheck)
+    {
+    	float r_1, r_2;
+    	float x_1, y_1;
+     
+    	r_1 = -(EntityPos.y - LocalPlayerPos.y);
+    	r_2 = EntityPos.x - LocalPlayerPos.x;
+    	
+    	float yawToRadian = angle * (float)(M_PI / 180.0F);
+    	x_1 = (float)(r_2 * (float)cos((double)(yawToRadian)) - r_1 * sin((double)(yawToRadian))) / 20;
+    	y_1 = (float)(r_2 * (float)sin((double)(yawToRadian)) + r_1 * cos((double)(yawToRadian))) / 20;
+     
+    	*viewCheck = y_1 < 0;
+     
+    	x_1 *= zoom;
+    	y_1 *= zoom;
+     
+    	int sizX = sizeX / 2;
+    	int sizY = sizeY / 2;
+     
+    	x_1 += sizX;
+    	y_1 += sizY;
+     
+    	if (x_1 < 5)
+    		x_1 = 5;
+     
+    	if (x_1 > sizeX - 5)
+    		x_1 = sizeX - 5;
+     
+    	if (y_1 < 5)
+    		y_1 = 5;
+     
+    	if (y_1 > sizeY - 5)
+    		y_1 = sizeY - 5;
+     
+     
+    	x_1 += posX;
+    	y_1 += posY;
+     
+     
+    	return Vector3D(x_1, y_1, 0);
+    }
+
+    static void TeamMiniMap(int x, int y, int radius, int teamID, float targetyaw)
+    {
+        RGBA2 color;
+        auto it = teamColors.find(teamID);
+        if (it == teamColors.end()) {
+            // Define the minimum sum of RGB values for a color to be considered "light"
+            const int MIN_SUM_RGB = 500;
+
+            // Generate a new random color for this team, discarding colors with a low sum of RGB values
+            std::random_device rd;
+            std::mt19937 gen(rd());
+            std::uniform_int_distribution<> dis(0, 255);
+            RGBA2 color;
+            do {
+                color = { dis(gen), dis(gen), dis(gen), 255 };
+            } while (color.R + color.G + color.B < MIN_SUM_RGB);
+
+            // Store the color in the teamColors map
+            teamColors[teamID] = color;
+        }
+        else {
+            // Use the previously generated color for this team
+            color = it->second;
+        }
+
+        auto colOutline = ImGui::ColorConvertFloat4ToU32(ImVec4(0.0, 0.0, 0.0, 1.0));
+        ImVec2 center(x, y);
+        ImGui::GetWindowDrawList()->AddCircleFilled(center, radius, ImGui::ColorConvertFloat4ToU32(ImVec4(color.R / 255.0, color.G / 255.0, color.B / 255.0, color.A / 255.0)));
+        ImGui::GetWindowDrawList()->AddCircle(center, radius, colOutline, 12, Config::Radar::minimapradardotsize2);
+
+        // Draw a line pointing in the direction of each player's aim
+        const int numPlayers = 3;
+        for (int i = 0; i < numPlayers; i++) {
+            float angle = (360.0 - targetyaw) * (M_PI / 180.0); // Replace this with the actual yaw of the player, then convert it to radians.
+            ImVec2 endpoint(center.x + radius * cos(angle), center.y + radius * sin(angle));
+            ImGui::GetWindowDrawList()->AddLine(center, endpoint, colOutline);
+        }
+    }
+
     static void DrawText(ImDrawList* canvas, const Vector2D& pos, const char* text, ImColor color, bool outline, bool centered, bool adjustHeight) {
 		const auto textColor = color;
         const auto outlineColor = ImColor(0, 0, 0);
@@ -49,9 +172,10 @@ public:
         canvas->AddHexagonFilled(p1, p2, p3, p4, p5, p6, col);
     }
 
-    //CG DrawBox
-    static void DrawBox(ImDrawList* canvas, const Vector2D& min, const Vector2D& max, const ImColor& color, float thickness) {
-        canvas->AddRect(ImVec2(min.x, min.y), ImVec2(max.x, max.y), color, 0.0f, 0, thickness);
+    static void DrawBox(ImDrawList* canvas, const Vector2D& foot, const Vector2D& head, const ImColor& color, float thickness) {
+        float height = head.y - foot.y;
+    	float width = height / 2.0f;
+        canvas->AddRect(ImVec2(foot.x - (width / 2), foot.y), ImVec2(head.x + (width/2), head.y+(height*0.2)), color, 0.0f, 0, thickness);
 	}
 
     static void DrawSeer(ImDrawList* Canvas, float x, float y, int shield, int max_shield, int health) {

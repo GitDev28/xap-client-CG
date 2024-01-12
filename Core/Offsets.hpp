@@ -6,8 +6,17 @@ constexpr long OFF_LEVEL = 0x16966f0;                         //[Miscellaneous]-
 constexpr long OFF_LOCAL_PLAYER = 0x211fac8;                  //[Miscellaneous]->LocalPlayer
 constexpr long OFF_ENTITY_LIST = 0x1d71858;                   //[Miscellaneous]->cl_entitylist
 
+constexpr long OFFSET_IN_FORWARD = 0x0738b1d0;                       //[Buttons]->in_forward
+constexpr long OFFSET_TRAVERSAL_START_TIME = 0x2b30;             //[Buttons]->m_traversalStartTime
+constexpr long OFFSET_TRAVERSAL_PROGRESS = 0x2b2c;             //[Buttons]->m_traversalProgress
+constexpr long OFFSET_WALL_RUN_START_TIME = 0x3594;           //[Buttons]->m_wallRunStartTime  
+constexpr long OFFSET_TIME_BASE = 0x20b8;                     //m_currentFramePlayer.timeBase   
+constexpr long OFF_IN_JUMP = 0x0738b0a0;                       //[Buttons]->in_jump
+constexpr long OFF_IN_DUCK = 0x0738b190;                       //[Buttons]->in_duck
+
 constexpr long OFF_NAME_LIST = 0xc275bf0;                     //[Miscellaneous]->NameList
 constexpr long OFF_NAME_INDEX = 0x38;                         //nameIndex
+constexpr long OFF_MODELNAME = 0x0030;                        //m_ModelName
 
 // HUD
 constexpr long OFF_VIEWRENDER = 0x7389d40;                    //[Miscellaneous]->ViewRenderer
@@ -49,6 +58,7 @@ constexpr long OFF_CURRENTZOOMFOV = 0x1600 + 0x00b8;          //m_playerData + m
 constexpr long OFF_TARGETZOOMFOV = 0x1600 + 0x00bc;           //m_playerData + m_targetZoomFOV
 
 // Glow
+constexpr long HIGHLIGHT_TYPE_SIZE = 0x28;  
 constexpr long OFF_GLOW_ENABLE = 0x294;                       //Script_Highlight_GetCurrentContext
 constexpr long OFF_GLOW_THROUGH_WALL = 0x278;                 //Script_Highlight_SetVisibilityType
 constexpr long OFF_GLOW_FIX = 0x270;

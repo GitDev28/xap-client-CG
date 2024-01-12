@@ -20,6 +20,8 @@
 #include "Features/Aimbot.hpp"
 #include "Features/Sense.hpp"
 #include "Features/Triggerbot.hpp"
+#include "Features/Radar.hpp"
+#include "Features/NoRecoil.hpp"
 
 #include "Overlay/Overlay.hpp"
 
@@ -46,9 +48,14 @@ std::vector<Player*>* Players = new std::vector<Player*>;
 Sense* ESP = new Sense(Players, GameCamera, Myself);
 Aimbot* AimAssist = new Aimbot(X11Display, Myself, Players);
 Triggerbot* Trigger = new Triggerbot(X11Display, Myself, Players);
+Radar *MapRadar = new Radar(X11Display, Players, GameCamera, Map, Myself);
+NoRecoil *Rec = new NoRecoil(X11Display,Myself);
 
 // Booleans and Variables
 bool IsMenuOpened = true;
+bool multiScreen = true;
+float ScreenOffset_X = 0;
+float ScreenOffset_Y = 0;
 
 // Thread
 std::atomic_bool StopThread(false);
@@ -87,9 +94,13 @@ bool InitializeOverlayWindow() {
     }
     int ScreenWidth;
     int ScreenHeight;
-    OverlayWindow.GetScreenResolution(ScreenWidth, ScreenHeight);
+    int posX;
+    int posY;
+    int ScOffset;
+
+    OverlayWindow.GetScreenResolution(ScreenWidth, ScreenHeight, posX, posY, ScOffset);
     GameCamera->Initialize(ScreenWidth, ScreenHeight);
-    std::cout << "overlay initialized (" << ScreenWidth << " x " << ScreenHeight << ")" << std::endl;
+    std::cout << "Overlay initialized (" << ScreenWidth << " x " << ScreenHeight << ")" << std::endl;
     return true;
 }
 
@@ -97,30 +108,31 @@ bool InitializeOverlayWindow() {
 void LoadConfig() {
     bool success = ReadConfig("config.ini");
     if (success)
-        std::cout << "successfully read config" << std::endl;
+        std::cout << "Successfully read config" << std::endl;
     else
-        std::cout << "can't read config for some reason so new config file has been created" << std::endl;
+        std::cout << "Can't read/find config file. New config file created." << std::endl;
 
     // Aimbot //
     AimAssist->AimbotEnabled = Config::Aimbot::Enabled;
     AimAssist->PredictMovement = Config::Aimbot::PredictMovement;
     AimAssist->PredictBulletDrop = Config::Aimbot::PredictBulletDrop;
+    AimAssist->AllowTargetSwitch = Config::Aimbot::AllowTargetSwitch;
+    AimAssist->aimHotKey = static_cast<InputKeyType>(Config::Aimbot::aimHotKey);
     AimAssist->Speed = Config::Aimbot::Speed;
     AimAssist->Smooth = Config::Aimbot::Smooth;
     AimAssist->FOV = Config::Aimbot::FOV;
     AimAssist->ZoomScale = Config::Aimbot::ZoomScale;
     AimAssist->MinDistance = Config::Aimbot::MinDistance;
-    AimAssist->HipfireDistance = Config::Aimbot::HipfireDistance;
-    AimAssist->ZoomDistance = Config::Aimbot::ZoomDistance;
-    AimAssist->RecoilEnabled = Config::Aimbot::RecoilControl;
-    AimAssist->PitchPower = Config::Aimbot::PitchPower;
-    AimAssist->YawPower = Config::Aimbot::YawPower;
+    AimAssist->MaxDistance = Config::Aimbot::MaxDistance;
+    AimAssist->HitBox = static_cast<HitboxType>(Config::Aimbot::HitBox);
+
 
     // ESP //
     ESP->GlowEnabled = Config::Sense::Enabled;
     ESP->ItemGlow = Config::Sense::ItemGlow;
     ESP->GlowMaxDistance = Config::Sense::MaxDistance;
     ESP->DrawBox = Config::Sense::DrawBox;
+    ESP->DrawSkeleton = Config::Sense::DrawSkeleton;
     ESP->DrawTracers = Config::Sense::DrawTracers;
     ESP->DrawDistance = Config::Sense::DrawDistance;
     ESP->DrawSeer = Config::Sense::DrawSeer;
@@ -133,13 +145,65 @@ void LoadConfig() {
 
     // Triggerbot //
     Trigger->TriggerbotEnabled = Config::Triggerbot::Enabled;
-    Trigger->TriggerbotRange = Config::Triggerbot::Range;
+    Trigger->TurboFireEnabled = Config::Triggerbot::TurboFireEnabled;
+    Trigger->TriggerbotMinRange = Config::Triggerbot::TriggerbotMinRange;
+    Trigger->TriggerbotMaxRange = Config::Triggerbot::TriggerbotMaxRange;
+    Trigger->wSentinel = Config::Triggerbot::wSentinel;
+    Trigger->wLongbow = Config::Triggerbot::wLongbow;
+    Trigger->wChargeRfile = Config::Triggerbot::wChargeRfile;
+    Trigger->wMozambique = Config::Triggerbot::wMozambique;
+    Trigger->wEva8 = Config::Triggerbot::wEva8;
+    Trigger->wPeaceKeeper = Config::Triggerbot::wPeaceKeeper;
+    Trigger->wMastiff = Config::Triggerbot::wMastiff;
+    Trigger->wP2020 = Config::Triggerbot::wP2020;
+    Trigger->wRE45 = Config::Triggerbot::wRE45;
+    Trigger->wAlternator = Config::Triggerbot::wAlternator;
+    Trigger->wR99 = Config::Triggerbot::wR99;
+    Trigger->wR301 = Config::Triggerbot::wR301;
+    Trigger->wSpitfire = Config::Triggerbot::wSpitfire;
+    Trigger->wG7 = Config::Triggerbot::wG7;
+    Trigger->wCar = Config::Triggerbot::wCar;
+    Trigger->wRampage = Config::Triggerbot::wRampage;
+    Trigger->w3030 = Config::Triggerbot::w3030;
+    Trigger->wHemlock = Config::Triggerbot::wHemlock;
+    Trigger->wFlatline = Config::Triggerbot::wFlatline;
+    Trigger->wNemesis = Config::Triggerbot::wNemesis;
+    Trigger->wVolt = Config::Triggerbot::wVolt;
+    Trigger->wTripleTake = Config::Triggerbot::wTripleTake;
+    Trigger->wLStar = Config::Triggerbot::wLStar;
+    Trigger->wDevotion = Config::Triggerbot::wDevotion;
+    Trigger->wHavoc = Config::Triggerbot::wHavoc;
+    Trigger->wWingman = Config::Triggerbot::wWingman;
+    Trigger->wProwler = Config::Triggerbot::wProwler;
+    Trigger->wBocek = Config::Triggerbot::wBocek;
+    Trigger->wKraber = Config::Triggerbot::wKraber;
+    Trigger->wThrowingKnife = Config::Triggerbot::wThrowingKnife;
+
+    // Screen Preferences
+    ScreenOffset_X = Config::ScreenPref::ScreenOffset_X;
+    ScreenOffset_Y = Config::ScreenPref::ScreenOffset_Y;
+
+    // No Recoil
+    Rec->RCSEnabled = Config::NoRecoil::Enabled;
+    Rec->PitchPower = Config::NoRecoil::PitchPower;
+    Rec->YawPower = Config::NoRecoil::YawPower;
+
+    // Radar
+    /*MapRadar->miniRadar = Config::Radar::miniRadar;
+    MapRadar->bigRadar = Config::Radar::bigRadar;
+    MapRadar->MiniMapGuides = Config::Radar::MiniMapGuides;
+    MapRadar->miniMapRange = Config::Radar::miniMapRange;
+    MapRadar->minimapradardotsize1 = Config::Radar::minimapradardotsize1;
+    MapRadar->minimapradardotsize2 = Config::Radar::minimapradardotsize2;
+    MapRadar->bigMapHotKey = static_cast<InputKeyType>(Config::Radar::bigMapHotKey);*/
 }
 
 void SaveConfig() {
     if (!AimAssist->Save()) std::cout << "something went wrong trying to save Aimbot settings" << std::endl;
     if (!ESP->Save()) std::cout << "something went wrong trying to save ESP settings" << std::endl;
     if (!Trigger->Save()) std::cout << "something went wrong trying to save Triggerbot settings" << std::endl;
+    if (!MapRadar->Save()) std::cout << "something went wrong trying to save Radar settings" << std::endl;
+    if (!Rec->Save()) std::cout << "something went wrong trying to save NoRecoil settings" << std::endl;
     UpdateConfig();
 }
 
@@ -161,11 +225,12 @@ void RenderUI() {
 	Canvas = ImGui::GetWindowDrawList();
     if (Map->IsPlayable)
         ESP->RenderDrawings(Canvas, AimAssist, Myself, OverlayWindow);
+        MapRadar->RenderDrawings(Canvas, AimAssist, Myself, OverlayWindow);
 	ImGui::End();
 
     if (!IsMenuOpened) return;
 
-    // Menu (//CG adding W/H fpr Menu)
+    // Menu
     int menuWidth = 440;
     int menuHeight = 500;
     ImGui::SetNextWindowSizeConstraints(ImVec2(menuWidth, menuHeight), ImVec2(menuWidth, menuHeight));
@@ -173,19 +238,59 @@ void RenderUI() {
     ImGui::Begin("xap-client", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar);
     
     ProcessingTimeColor = OverlayWindow.ProcessingTime > 20 ? ProcessingTimeColor = ImVec4(1, 0.343, 0.475, 1) : ProcessingTimeColor = ImVec4(0.4, 1, 0.343, 1);
+    ImGui::TextColored(ImVec4(0.90f, 0.90f, 0.90f, 0.90f), "Push INS (insert) key to open/close this menu");
     ImGui::TextColored(ProcessingTimeColor, "Processing Time: %02dms", OverlayWindow.ProcessingTime);
     ImGui::SameLine();
 
-    if (OverlayWindow.AlignedButton("Save Config", 1.0f)) {
+    if (OverlayWindow.AlignedButton("Save Config", 0.8f)) {
         SaveConfig();
-        std::cout << "config saved" << std::endl;
-    }    
+        std::cout << "Config saved" << std::endl;
+    }
+    ImGui::SameLine();
+    if (OverlayWindow.AlignedButton("Close", 1.0f))
+    {
+        OverlayWindow.DestroyOverlay();
+        std::system("clear");
+        std::cout << "Closing Overlay..." << std::endl;
+        exit(0);
+    }   
 
     if (ImGui::BeginTabBar("Menus"), ImGuiTabBarFlags_NoCloseWithMiddleMouseButton) {
         // Draw Settings //
         AimAssist->RenderUI();
+        Rec->RenderUI();
         Trigger->RenderUI();
         ESP->RenderUI();
+        MapRadar->RenderUI();
+
+        /* Screen Preferences */
+        if (ImGui::BeginTabItem("Config", nullptr, ImGuiTabItemFlags_NoCloseWithMiddleMouseButton | ImGuiTabItemFlags_NoReorder)) {
+            ImGui::Checkbox("Trios, Gun run or Training Area", &Config::GameMode::threeManSquad);
+            if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+                ImGui::SetTooltip("Game Mode Settings");
+            
+            if (OverlayWindow.MonCount > 1) {
+                ImGui::TextUnformatted("Multiple monitors detected");
+
+                /*ImGui::SliderFloat("Screen Offset X", &ScreenOffset_X, 0, 3000, "%.0f");
+                if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+                    ImGui::SetTooltip("Screen Offset X");
+
+                ImGui::SliderFloat("Screen Offset Y", &ScreenOffset_Y, -1000, 1000, "%.0f");
+                if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+                    ImGui::SetTooltip("Screen Offset Y");*/
+
+                /*
+                static char OffsetX[10] = "1920";
+                static char OffsetY[10] = "0";
+                ImGui::InputText("X Offset", OffsetX, IM_ARRAYSIZE(OffsetX));
+                ImGui::InputText("Y Offset", OffsetY, IM_ARRAYSIZE(OffsetY));*/
+
+                // Moving the overlay
+                //OverlayWindow.moveOverlay(std::stoi(OffsetX), std::stoi(OffsetY));
+            }
+            ImGui::EndTabItem();
+        }
 
         // Draw Credits //
         if (ImGui::BeginTabItem("Credits", nullptr, ImGuiTabItemFlags_NoCloseWithMiddleMouseButton | ImGuiTabItemFlags_NoReorder)) {
@@ -210,7 +315,7 @@ void RenderUI() {
 bool UpdateCore() {
     try {
         // Map Checking //
-        Map->Read();
+        Map->readFromMemory();
         if (!Map->IsPlayable) {
             return true;
         }
@@ -244,7 +349,8 @@ bool UpdateCore() {
         ESP->Update();
         AimAssist->Update();
         Trigger->Update();
-
+        Trigger->TurboFire();
+        Rec->controlWeapon();
         return true;
     } catch(const std::exception& ex) {
         std::system("clear");
@@ -265,12 +371,12 @@ int main(int argc, char *argv[]) {
     // Waiting for Apex Legends to be found //
     while (Memory::GetPID() == 0) {
         std::system("clear");
-        std::cout << "waiting for apex..." << std::endl;
+        std::cout << "Waiting for Apex Legends..." << std::endl;
         std::this_thread::sleep_for(std::chrono::seconds(3));
     }
 
     std::system("clear");
-    std::cout << "xap client ver 1.2 (CG modified version 12/31/2023)" << std::endl;
+    std::cout << "xap client ver 1.2 (CG modified version 01/05/2024)" << std::endl;
 
     // Initialize Overlay Window //
     if (!InitializeOverlayWindow()) return -1;
@@ -291,7 +397,7 @@ int main(int argc, char *argv[]) {
 
         ESP->Initialize();
         
-        std::cout << "core initialized" << std::endl;
+        std::cout << "Core initialized" << std::endl;
         std::cout << "-----------------------------" << std::endl;
 
         LoadConfig();

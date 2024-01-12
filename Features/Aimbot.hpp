@@ -15,6 +15,7 @@
 #include "../Utils/Conversion.hpp"
 #include "../Utils/Config.hpp"
 #include "../Utils/HitboxType.hpp"
+#include "../Utils/InputManager.hpp"
 
 // UI //
 #include "../imgui/imgui.h"
@@ -26,23 +27,18 @@
 
 struct Aimbot {
     bool AimbotEnabled = true;
-
     bool PredictMovement = true;
     bool PredictBulletDrop = true;
-
+    bool AllowTargetSwitch = false;
+    InputKeyType aimHotKey = InputKeyType::MOUSE_X2;
     float FinalDistance = 0;
-
     float Speed = 40;
     float Smooth = 10;
-    float FOV = 10;
+    float FOV = 7;
     float ZoomScale = 1.2;
     float MinDistance = 1;
-    float HipfireDistance = 60;
-    float ZoomDistance = 160;
-
-    bool RecoilEnabled = true;
-    float PitchPower = 3;
-    float YawPower = 3;
+    float MaxDistance = 100;
+    HitboxType HitBox = HitboxType::UpperChest;
 
     XDisplay* X11Display;
     LocalPlayer* Myself;
@@ -60,26 +56,20 @@ struct Aimbot {
     }
 
     void RenderUI() {
-        if (ImGui::BeginTabItem("Aim", nullptr, ImGuiTabItemFlags_NoCloseWithMiddleMouseButton | ImGuiTabItemFlags_NoReorder)) {
-            
+        if (ImGui::BeginTabItem("Aim Assist", nullptr, ImGuiTabItemFlags_NoCloseWithMiddleMouseButton | ImGuiTabItemFlags_NoReorder)) {
             ImGui::Checkbox("Aim - Assist", &AimbotEnabled);
             if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
                 ImGui::SetTooltip("Toggle the Aim-Assist");
 
-            ImGui::Separator();
-
             if (AimbotEnabled) {
-                ImGui::Checkbox("Recoil Control", &RecoilEnabled);
-                if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-                    ImGui::SetTooltip("Reduce the intensity of weapon's recoil.");
-                ImGui::SliderFloat("Pitch", &PitchPower, 1, 10, "%.1f");
-                if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-                    ImGui::SetTooltip("Pitch Power");
-                ImGui::SliderFloat("Yaw", &YawPower, 1, 10, "%.1f");
-                if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-                    ImGui::SetTooltip("Yaw Power");
-
-                ImGui::Separator();
+                const char* HitboxTypes[] = {"Head", "Neck", "Upper Chest", "Lower Chest", "Stomach", "Hip"};
+                int HitboxTypeIndex = static_cast<int>(Config::Aimbot::HitBox);
+                ImGui::Combo("Hitbox Type", &HitboxTypeIndex, HitboxTypes, IM_ARRAYSIZE(HitboxTypes));
+                Config::Aimbot::HitBox = static_cast<int>(HitboxTypeIndex);
+                
+                int aimbotHotkey = static_cast<int>(Config::Aimbot::aimHotKey);
+                ImGui::Combo("Aim HotKey##Aimbot", &aimbotHotkey, InputKeyTypeNames, IM_ARRAYSIZE(InputKeyTypeNames));
+                Config::Aimbot::aimHotKey = static_cast<int>(aimbotHotkey);
 
                 ImGui::Checkbox("Predict Movement", &PredictMovement);
                 if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
@@ -88,6 +78,10 @@ struct Aimbot {
                 ImGui::Checkbox("Predict Bullet Drop", &PredictBulletDrop);
                 if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
                     ImGui::SetTooltip("Predict weapon's bullet drop");
+                ImGui::SameLine();
+                ImGui::Checkbox("Allow Target Switch", &AllowTargetSwitch);
+                if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+                    ImGui::SetTooltip("Allow Target Switch");
 
                 ImGui::Separator();
 
@@ -110,13 +104,12 @@ struct Aimbot {
 
                 ImGui::Separator();
 
-                ImGui::SliderFloat("Hip-fire Distance", &HipfireDistance, 1, 500, "%.0f");
+                ImGui::SliderFloat("Min Distance", &MinDistance, 1, 100, "%.0f");
                 if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
                     ImGui::SetTooltip("Minimum distance for Aim-Assist to work");
-                ImGui::SliderFloat("Zoom Distance", &ZoomDistance, 1, 500, "%.0f");
+                ImGui::SliderFloat("Max Distance", &MaxDistance, 1, 500, "%.0f");
                 if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
                     ImGui::SetTooltip("Maximum distance for Aim-Assist to work");
-
             }
 
             ImGui::EndTabItem();
@@ -128,16 +121,16 @@ struct Aimbot {
             Config::Aimbot::Enabled = AimbotEnabled;
             Config::Aimbot::PredictMovement = PredictMovement;
             Config::Aimbot::PredictBulletDrop = PredictBulletDrop;
+            Config::Aimbot::AllowTargetSwitch = AllowTargetSwitch;
+            Config::Aimbot::aimHotKey = static_cast<int>(Config::Aimbot::aimHotKey);
+            Config::Aimbot::FinalDistance = FinalDistance;
             Config::Aimbot::Speed = Speed;
             Config::Aimbot::Smooth = Smooth;
             Config::Aimbot::FOV = FOV;
             Config::Aimbot::ZoomScale = ZoomScale;
             Config::Aimbot::MinDistance = MinDistance;
-            Config::Aimbot::HipfireDistance = HipfireDistance;
-            Config::Aimbot::ZoomDistance = ZoomDistance;
-            Config::Aimbot::RecoilControl = RecoilEnabled;
-            Config::Aimbot::PitchPower = PitchPower;
-            Config::Aimbot::YawPower = YawPower;
+            Config::Aimbot::MaxDistance = MaxDistance;
+            Config::Aimbot::HitBox = static_cast<int>(Config::Aimbot::HitBox);
             return true;
         } catch (...) {
             return false;
@@ -148,12 +141,11 @@ struct Aimbot {
         if (!AimbotEnabled) { ReleaseTarget(); return; }
 
         if (Myself->IsZooming)
-            FinalDistance = ZoomDistance;
-        else FinalDistance = HipfireDistance;
+            FinalDistance = MaxDistance;
+        else FinalDistance = MinDistance;
 
         if (!Myself->IsCombatReady()) { CurrentTarget = nullptr; return; }
-        //CG if (!X11Display->KeyDown(XK_Shift_L) && !Myself->IsInAttack) { ReleaseTarget(); return; }
-        if (!Myself->IsZooming && !Myself->IsInAttack) { ReleaseTarget(); return; }
+        if (!InputManager::isKeyDown(static_cast<InputKeyType>(Config::Aimbot::aimHotKey))) { ReleaseTarget(); TargetSelected = false; CurrentTarget = nullptr; return;}
         if (Myself->IsHoldingGrenade) { ReleaseTarget(); return; }
 
         Player* Target = CurrentTarget;
@@ -172,14 +164,14 @@ struct Aimbot {
             TargetSelected = true;
         } 
         
-        if (TargetSelected && CurrentTarget) {
+        /*if (TargetSelected && CurrentTarget) {
             std::chrono::milliseconds Now = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
             if (Now >= LastAimTime + std::chrono::milliseconds(10)) {
                 StartAiming();
                 LastAimTime = Now + std::chrono::milliseconds((int)Utils::RandomRange(1, 10));
             }
             return;
-        }
+        }*/StartAiming();
     }
 
     void StartAiming() {
@@ -187,9 +179,6 @@ struct Aimbot {
         QAngle DesiredAngles = QAngle(0, 0);
         if (!GetAngle(CurrentTarget, DesiredAngles))
             return;
-
-        // Recoil Control
-        RecoilControl(DesiredAngles);
 
         // Smoothing
         SmoothAngle(DesiredAngles);
@@ -230,7 +219,8 @@ struct Aimbot {
     }
 
     bool GetAngleToTarget(Player* Target, QAngle& Angle) {
-        Vector3D TargetPosition = Target->GetBonePosition(static_cast<HitboxType>(GetBestBone(Target)));
+        //Vector3D TargetPosition = Target->GetBonePosition(static_cast<HitboxType>(GetBestBone(Target)));
+        Vector3D TargetPosition = Target->GetBonePosition(static_cast<HitboxType>(Config::Aimbot::HitBox));
         Vector3D TargetVelocity = Target->AbsoluteVelocity;
         Vector3D CameraPosition = Myself->CameraPosition;
         QAngle CurrentAngle = QAngle(Myself->ViewAngles.x, Myself->ViewAngles.y).NormalizeAngles();
@@ -327,16 +317,6 @@ struct Aimbot {
         return 1.0;
     }
 
-    void RecoilControl(QAngle& Angle) {
-        QAngle CurrentPunch = QAngle(Myself->PunchAngles.x, Myself->PunchAngles.y).NormalizeAngles();
-        QAngle NewPunch = { CurrentPunch.x - RCSLastPunch.x, CurrentPunch.y - RCSLastPunch.y };
-
-		Angle.x -= NewPunch.x * YawPower;
-		Angle.y -= NewPunch.y * PitchPower;
-
-        RCSLastPunch = CurrentPunch;
-    }
-
     int GetBestBone(Player* Target) {
         float NearestDistance = 999;
         int NearestBone = 2;
@@ -359,7 +339,7 @@ struct Aimbot {
         for (int i = 0; i < Players->size(); i++) {
             Player* p = Players->at(i);
             if (!IsValidTarget(p)) continue;
-            if (p->DistanceToLocalPlayer < Conversion::ToGameUnits(ZoomDistance)) {
+            if (p->DistanceToLocalPlayer < Conversion::ToGameUnits(MaxDistance)) {
                 HitboxType BestBone = static_cast<HitboxType>(GetBestBone(p));
                 Vector3D TargetPosition = p->GetBonePosition(BestBone);
 
