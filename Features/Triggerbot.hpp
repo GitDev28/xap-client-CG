@@ -24,44 +24,44 @@ struct Triggerbot {
     float TriggerbotMinRange = 10;
     float TriggerbotMaxRange = 200;
 
-    // Weapons definition
-    int WEAPON_HANDS = 113;
     //Sniper ammo weapons
     int WEAPON_SENTINEL = 1;
-    int WEAPON_CHARGE_RIFLE = 82;
-    int WEAPON_LONGBOW = 84;
+    int WEAPON_CHARGE_RIFLE = 83;
+    int WEAPON_LONGBOW = 85;
     //Shotgun ammo weapons
-    int WEAPON_MOZAMBIQUE = 95;
-    int WEAPON_EVA8 = 86;
-    int WEAPON_PEACEKEEPER = 102;
-    int WEAPON_MASTIFF = 94;
+    int WEAPON_MOZAMBIQUE = 96;
+    int WEAPON_EVA8 = 87;
+    int WEAPON_PEACEKEEPER = 103;
+    int WEAPON_MASTIFF = 95;
     //Light ammo weapons
-    int WEAPON_P2020 = 104;
-    int WEAPON_RE45 = 80;
-    int WEAPON_ALTERNATOR = 79;
-    int WEAPON_R99 = 103;
+    int WEAPON_P2020 = 105;
+    int WEAPON_RE45 = 81;
+    int WEAPON_ALTERNATOR = 80;
+    int WEAPON_R99 = 104;
     int WEAPON_R301 = 0;
-    int WEAPON_SPITFIRE = 105;
-    int WEAPON_G7 = 88;
+    int WEAPON_SPITFIRE = 106;
+    int WEAPON_G7 = 89;
     //Heavy ammo weapons
-    int WEAPON_CAR = 111;
-    int WEAPON_RAMPAGE = 20;
-    int WEAPON_3030 = 110;
-    int WEAPON_HEMLOCK = 89;
-    int WEAPON_FLATLINE = 87;
+    int WEAPON_CAR = 112;
+    int WEAPON_RAMPAGE = 21;
+    int WEAPON_3030 = 111;
+    int WEAPON_HEMLOCK = 90;
+    int WEAPON_FLATLINE = 88;
     //Energy ammo weapons
-    int WEAPON_NEMESIS = 112;
-    int WEAPON_VOLT = 109;
-    int WEAPON_TRIPLE_TAKE = 106;
-    int WEAPON_LSTAR = 92;
-    int WEAPON_DEVOTION = 83;
-    int WEAPON_HAVOC = 85;
+    int WEAPON_NEMESIS = 113;
+    int WEAPON_VOLT = 110;
+    int WEAPON_TRIPLE_TAKE = 107;
+    int WEAPON_LSTAR = 93;
+    int WEAPON_DEVOTION = 84;
+    int WEAPON_HAVOC = 86;
     //Legendary ammo weapons
-    int WEAPON_WINGMAN = 108; //Emotional damage! :)
-    int WEAPON_PROWLER = 101;
+    int WEAPON_WINGMAN = 109;
+    int WEAPON_PROWLER = 102;
     int WEAPON_BOCEK = 2;
-    int WEAPON_KRABER = 91;
-    int WEAPON_THROWING_KNIFE = 158;
+    int WEAPON_KRABER = 92;
+    int WEAPON_THROWING_KNIFE = 163;
+    int BUSTER_SWORD_R2R5 = 3;
+    int WEAPON_THERMITE_GRENADE = 213;
 
     // Weapon selection
     bool wSentinel = true;
@@ -97,7 +97,8 @@ struct Triggerbot {
     bool wThrowingKnife = true;
 
     // Definition of auto triggered weapon (TriggerBot)
-    std::set<int> WeaponList = {1, 88, 20, 110, 89, 112, 106, 108, 2, 91, 158};
+    //std::set<int> WeaponList = {1, 88, 20, 110, 89, 112, 106, 108, 2, 91, 158};
+    std::set<int> WeaponList = {1, 85, 111, 90, 107, 2, 92, 163};
     // Definition of auto triggered weapon (Turbo Fire)
     std::set<int> WeaponListTF = {104};
 

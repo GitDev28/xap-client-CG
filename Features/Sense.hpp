@@ -408,12 +408,14 @@ struct Sense {
 
         // Item Glow //
         if (ItemGlow) {
-            for (int highlightId = 31; highlightId < 35; highlightId++) {
+            //for (int highlightId = 31; highlightId < 35; highlightId++) {
+            for (int highlightId = 1; highlightId < 50; highlightId++) {
                 const GlowMode newGlowMode = { 137, 138, 35, 127 };
                 SetGlowState(HighlightSettingsPointer, HighlightSize, highlightId, newGlowMode);
             }
         } else {
-            for (int highlightId = 31; highlightId < 35; highlightId++) {
+            //for (int highlightId = 31; highlightId < 35; highlightId++) {
+            for (int highlightId = 1; highlightId < 50; highlightId++) {
                 const GlowMode newGlowMode = StoredGlowMode->at(highlightId);
                 SetGlowState(HighlightSettingsPointer, HighlightSize, highlightId, newGlowMode);
             }
