@@ -96,14 +96,6 @@ void MiniMapRadar(Vector3D EnemyPos, Vector3D LocalPos, float targetY, float ene
 }
 
 struct Radar {
-	//bool miniRadar = true;
-	//bool bigRadar = true;
-	//bool MiniMapGuides = true;
-	//float miniMapRange = 100;
-	//int minimapradardotsize1 = 5;
-    //int minimapradardotsize2 = 5;
-	//InputKeyType bigMapHotKey = InputKeyType::KEYBOARD_M;
-
     XDisplay* X11Display;
     Camera* GameCamera;
     Level* m_level;
@@ -141,13 +133,13 @@ struct Radar {
 
 			ImGui::Separator();
 
-            ImGui::Checkbox("BigMap Radar", &Config::Radar::bigRadar);
+            /*ImGui::Checkbox("BigMap Radar", &Config::Radar::bigRadar);
             if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
                 ImGui::SetTooltip("Toggle the big map radar (access with the M key)");
 
 			int mainMapHotKey = Config::Radar::bigMapHotKey;
             ImGui::Combo("Main Map HotKey##Radar", &mainMapHotKey, InputKeyTypeNames, IM_ARRAYSIZE(InputKeyTypeNames));
-            Config::Radar::bigMapHotKey = mainMapHotKey;
+            Config::Radar::bigMapHotKey = mainMapHotKey;*/
 
             ImGui::EndTabItem();
         }
@@ -198,16 +190,16 @@ struct Radar {
 		if (Config::Radar::bigRadar && InputManager::isKeyDownOrPress(static_cast<InputKeyType>(Config::Radar::bigMapHotKey))) {
 			uint64_t pLocal = Memory::Read<uint64_t>(OFF_REGION + OFF_LOCAL_PLAYER);
 			int currentTEAM = Memory::Read<int>(pLocal + OFF_TEAM_NUMBER);
-			int number = 8000; // 80000
+			int number = 800000;
 
-			for (uintptr_t i = 0; i <= number; i++)
+			/*for (uintptr_t i = 0; i <= number; i++)
 			{
 				Memory::Write<int>(pLocal + OFF_TEAM_NUMBER, 1);
 			}
 			for (uintptr_t i = 0; i <= number; i++)
 			{
 				Memory::Write<int>(pLocal + OFF_TEAM_NUMBER, currentTEAM);
-			} 
+			} */
 		}
     }   
 };

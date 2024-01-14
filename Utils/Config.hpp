@@ -108,6 +108,13 @@ namespace Config {
         bool wThrowingKnife = true;
     };
 
+    namespace TurboFire {
+        bool Enabled = true;
+        bool wtP2020 = true;
+        bool wtG7 = true;
+        bool wtHemlock = true;
+    };
+
     namespace ScreenPref {
         unsigned int ScreenOffset_X = 1920;
         unsigned int ScreenOffset_Y = 0;
@@ -193,6 +200,12 @@ void UpdateConfig() {
         WritePair(Triggerbot, wBocek);
         WritePair(Triggerbot, wKraber);
         WritePair(Triggerbot, wThrowingKnife);
+        WriteSectionEnd();
+
+        WriteSection(TurboFire);
+        WritePair(TurboFire, wtP2020);
+        WritePair(TurboFire, wtG7);
+        WritePair(TurboFire, wtHemlock);
         WriteSectionEnd();
 
         WriteSection(Radar);
@@ -292,6 +305,11 @@ bool ReadConfig(const std::string &configFile) {
     ReadPairBool(Triggerbot, wBocek);
     ReadPairBool(Triggerbot, wKraber);
     ReadPairBool(Triggerbot, wThrowingKnife);
+
+    ReadPairBool(TurboFire, Enabled);
+    ReadPairBool(TurboFire, wtP2020);
+    ReadPairBool(TurboFire, wtG7);
+    ReadPairBool(TurboFire, wtHemlock);
 
     ReadPairBool(Radar, miniRadar);
     ReadPairBool(Radar, bigRadar);

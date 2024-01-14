@@ -76,7 +76,8 @@ struct Player {
 
         GlowEnable = Memory::Read<int>(BasePointer + OFF_GLOW_ENABLE);
         GlowThroughWall = Memory::Read<int>(BasePointer + OFF_GLOW_THROUGH_WALL);
-        HighlightID = Memory::Read<int>(BasePointer + OFF_GLOW_HIGHLIGHT_ID + 1);
+        //HighlightID = Memory::Read<int>(BasePointer + OFF_GLOW_HIGHLIGHT_ID + 1);
+        HighlightID = Memory::Read<int>(BasePointer + OFF_GLOW_HIGHLIGHT_ID + 0);
 
         ViewAngles = Memory::Read<Vector2D>(BasePointer + OFF_VIEW_ANGLES);
         ViewYaw = Memory::Read<float>(BasePointer + OFF_YAW);

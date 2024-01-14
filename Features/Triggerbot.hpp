@@ -63,7 +63,7 @@ struct Triggerbot {
     int BUSTER_SWORD_R2R5 = 3;
     int WEAPON_THERMITE_GRENADE = 213;
 
-    // Weapon selection
+    // TriggerBot - Weapon selection
     bool wSentinel = true;
     bool wLongbow = true;
     bool wChargeRfile = false;
@@ -97,10 +97,15 @@ struct Triggerbot {
     bool wThrowingKnife = true;
 
     // Definition of auto triggered weapon (TriggerBot)
-    //std::set<int> WeaponList = {1, 88, 20, 110, 89, 112, 106, 108, 2, 91, 158};
     std::set<int> WeaponList = {1, 85, 111, 90, 107, 2, 92, 163};
-    // Definition of auto triggered weapon (Turbo Fire)
-    std::set<int> WeaponListTF = {105};
+
+    // TurboFire - Weapon selection
+    bool wtP2020 = true;
+    bool wtG7 = true;
+    bool wtHemlock = true;
+
+    // Definition of auto triggered weapon (Turbo Fire) (P2020, G7, HEMLOCK)
+    std::set<int> WeaponListTF = {105, 89, 90};
 
     XDisplay* X11Display;
     LocalPlayer* Myself;
@@ -178,12 +183,18 @@ struct Triggerbot {
             WeaponList.insert(WEAPON_THROWING_KNIFE);
     }
 
+    void UpdateTurboFireWeaponList() {
+        WeaponListTF.clear();
+        if (wtP2020)
+            WeaponListTF.insert(WEAPON_P2020);
+        if (wtG7)
+            WeaponListTF.insert(WEAPON_G7);
+        if (wtHemlock)
+            WeaponListTF.insert(WEAPON_HEMLOCK);
+    }
+
     void RenderUI() {
         if (ImGui::BeginTabItem("Triggerbot", nullptr, ImGuiTabItemFlags_NoCloseWithMiddleMouseButton | ImGuiTabItemFlags_NoReorder)) {
-            ImGui::Checkbox("P2020 Turbo Fire (Right Click)", &TurboFireEnabled);
-            if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-                ImGui::SetTooltip("Turbo Fire non auto weapon");
-
             ImGui::Checkbox("Triggerbot", &TriggerbotEnabled);
             if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
                 ImGui::SetTooltip("Will automatically shoot the target\nWill only activate when your crosshair is at target whilst holding down Triggerbot key");
@@ -264,8 +275,23 @@ struct Triggerbot {
                 }
                 
             }
+            ImGui::Separator();
+            ImGui::Checkbox("Turbo Fire (ADS)", &TurboFireEnabled);
+            if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+                ImGui::SetTooltip("Turbo Fire non auto weapon");
+            
+            if (TurboFireEnabled) {
+                    ImGui::Checkbox("P2020", &wtP2020);
+                    ImGui::SameLine();
+                    ImGui::Checkbox("G7", &wtG7);
+                    ImGui::SameLine();
+                    ImGui::Checkbox("Hemlock", &wtHemlock);
+                    ImGui::SameLine();
+            }
+
             ImGui::EndTabItem();
             UpdateTriggeredWeaponList();
+            UpdateTurboFireWeaponList();
         }
     }
 
@@ -305,6 +331,10 @@ struct Triggerbot {
             Config::Triggerbot::wBocek = wBocek;
             Config::Triggerbot::wKraber = wKraber;
             Config::Triggerbot::wThrowingKnife = wThrowingKnife;
+            // Turbo Fire
+            Config::TurboFire::wtP2020 = wtP2020;
+            Config::TurboFire::wtP2020 = wtP2020;
+            Config::TurboFire::wtP2020 = wtP2020;
             return true;
         } catch (...) {
             return false;
@@ -316,9 +346,19 @@ struct Triggerbot {
         if (!Myself->IsCombatReady()) return;
         if (WeaponListTF.find(Myself->WeaponIndex) == WeaponListTF.end()) return;
 
-        while (InputManager::isKeyDown(static_cast<InputKeyType>(InputKeyType::MOUSE_Right))) {
-            X11Display->MouseClickLeft();
-            std::this_thread::sleep_for(std::chrono::milliseconds(50));
+        const float TB_MIN_RANGE = Conversion::ToGameUnits(TriggerbotMinRange);
+        const float TB_MAX_RANGE = Conversion::ToGameUnits(TriggerbotMaxRange);
+        const float TB_FINAL_RANGE = (Myself->IsZooming) ? TB_MAX_RANGE : TB_MIN_RANGE;
+
+        for (int i = 0; i < Players->size(); i++) {
+            Player* player = Players->at(i);
+            if (!player->IsCombatReady()) continue;
+            if (!player->IsHostile) continue;
+            if (player->DistanceToLocalPlayer <= TB_FINAL_RANGE) {
+                //std::cout << "Final Distance: " << TB_FINAL_RANGE << std::endl;
+                X11Display->MouseClickLeft();
+                break;
+            }
         }
     }
 

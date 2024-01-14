@@ -179,6 +179,11 @@ void LoadConfig() {
     Trigger->wKraber = Config::Triggerbot::wKraber;
     Trigger->wThrowingKnife = Config::Triggerbot::wThrowingKnife;
 
+    // Turbo Fire
+    Trigger->wtP2020 = Config::TurboFire::wtP2020;
+    Trigger->wtG7 = Config::TurboFire::wtG7;
+    Trigger->wtHemlock = Config::TurboFire::wtHemlock;
+
     // Screen Preferences
     ScreenOffset_X = Config::ScreenPref::ScreenOffset_X;
     ScreenOffset_Y = Config::ScreenPref::ScreenOffset_Y;
@@ -242,10 +247,11 @@ void RenderUI() {
     ImGui::TextColored(ProcessingTimeColor, "Processing Time: %02dms", OverlayWindow.ProcessingTime);
     ImGui::SameLine();
 
+    // TOP Buttons
     if (OverlayWindow.AlignedButton("Save Config", 0.8f)) {
         SaveConfig();
         std::cout << "Config saved" << std::endl;
-    }
+    } 
     ImGui::SameLine();
     if (OverlayWindow.AlignedButton("Close", 1.0f))
     {

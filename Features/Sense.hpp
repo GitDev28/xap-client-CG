@@ -157,7 +157,8 @@ struct Sense {
     }
 
     void Initialize() {
-        for (int placebo = 0; placebo < 31; placebo++) {
+        //CG Adding more vectors
+        for (int placebo = 0; placebo < 71; placebo++) {
             const GlowMode Ehh = { 135, 132, 35, 127 };
             StoredGlowMode->push_back(Ehh);
         }
@@ -221,13 +222,6 @@ struct Sense {
                 }
             }
             ImGui::End();
-
-            //CG Disable Aim assist if spectator
-            if (TotalSpectators > 0 && SpectatorDisablesAA) {
-                //AimAssistState->AimbotEnabled = false;
-            } else {
-                //AimAssistState->AimbotEnabled = true;
-            }
         }
 
         // Draw FOV Circle
@@ -382,15 +376,15 @@ struct Sense {
     }
 
     void SetGlowState(long HighlightSettingsPointer, long HighlightSize, int HighlightID, GlowMode NewGlowMode) {
-        const GlowMode oldGlowMode = Memory::Read<GlowMode>(HighlightSettingsPointer + (HighlightSize * HighlightID) + 4);
+        const GlowMode oldGlowMode = Memory::Read<GlowMode>(HighlightSettingsPointer + (HighlightSize * HighlightID) + 0);
         if (NewGlowMode != oldGlowMode)
-            Memory::Write<GlowMode>(HighlightSettingsPointer + (HighlightSize * HighlightID) + 4, NewGlowMode);
+            Memory::Write<GlowMode>(HighlightSettingsPointer + (HighlightSize * HighlightID) + 0, NewGlowMode);
     }
 
     void SetColorState(long HighlightSettingsPointer, long HighlightSize, int HighlightID, Color NewColor) {
-        const Color oldColor = Memory::Read<Color>(HighlightSettingsPointer + (HighlightSize * HighlightID) + 8);
+        const Color oldColor = Memory::Read<Color>(HighlightSettingsPointer + (HighlightSize * HighlightID) + 4);
         if (oldColor != NewColor)
-            Memory::Write<Color>(HighlightSettingsPointer + (HighlightSize * HighlightID) + 8, NewColor);
+            Memory::Write<Color>(HighlightSettingsPointer + (HighlightSize * HighlightID) + 4, NewColor);
     }
 
     void SetGlow(Player* Target, int GlowEnabled, int GlowThroughWall, int HighlightID) {
@@ -404,18 +398,18 @@ struct Sense {
 
     void Update() {
         const long HighlightSettingsPointer = Memory::Read<long>(OFF_REGION + OFF_GLOW_HIGHLIGHTS);
-        const long HighlightSize = 0x28;
+        const long HighlightSize = 0x34;
 
         // Item Glow //
         if (ItemGlow) {
-            //for (int highlightId = 31; highlightId < 35; highlightId++) {
-            for (int highlightId = 1; highlightId < 50; highlightId++) {
+            //for (int highlightId = 34; highlightId < 39; highlightId++) {
+            for (int highlightId = 34; highlightId < 39; highlightId++) {
                 const GlowMode newGlowMode = { 137, 138, 35, 127 };
                 SetGlowState(HighlightSettingsPointer, HighlightSize, highlightId, newGlowMode);
             }
         } else {
-            //for (int highlightId = 31; highlightId < 35; highlightId++) {
-            for (int highlightId = 1; highlightId < 50; highlightId++) {
+            //for (int highlightId = 34; highlightId < 39; highlightId++) {
+            for (int highlightId = 34; highlightId < 39; highlightId++) {
                 const GlowMode newGlowMode = StoredGlowMode->at(highlightId);
                 SetGlowState(HighlightSettingsPointer, HighlightSize, highlightId, newGlowMode);
             }
