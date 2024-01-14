@@ -43,8 +43,8 @@ unknowncheats: basic knowledge and offsets
 
 **3. Clone repo**
 
-    git clone https://github.com/Nexilist/xap-client.git
-    cd xap-client
+    git clone https://github.com/GitDev28/xap-client-CG.git
+    cd xapclient
 
 **4. Build and Run**
 
